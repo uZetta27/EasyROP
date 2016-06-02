@@ -1,0 +1,3 @@
+import easyrop
+
+easyrop.main()

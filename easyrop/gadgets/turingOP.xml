@@ -1,0 +1,391 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE operations [
+        <!ELEMENT operations (operation)+>
+        <!ELEMENT operation (gadget)+>
+        <!ATTLIST operation
+                name CDATA #REQUIRED>
+        <!ELEMENT gadget (ins)+>
+        <!ATTLIST gadget
+                size CDATA #IMPLIED> <!-- size in bytes -->
+        <!ELEMENT ins (dest|src)*>
+        <!ATTLIST ins
+                mnemonic CDATA #REQUIRED>
+        <!ELEMENT dest (#PCDATA)>
+        <!ATTLIST dest
+                value CDATA #IMPLIED>
+        <!ELEMENT src (#PCDATA)>
+        ]>
+<operations>
+    <operation name="load_constant">
+        <gadget size="1">
+            <ins mnemonic="pop">
+                <dest>reg</dest>
+            </ins>
+        </gadget>
+        <gadget size="1">
+            <ins mnemonic="popad" />
+        </gadget>
+    </operation>
+    <operation name="move">
+        <gadget size="4">
+            <ins mnemonic="xor">
+                <dest>reg1</dest>
+                <src>reg1</src>
+            </ins>
+            <ins mnemonic="add">
+                <dest>reg1</dest>
+                <src>reg2</src>
+            </ins>
+        </gadget>
+        <gadget size="3">
+            <ins mnemonic="pop">
+                <dest value="0xFFFFFFFF">reg1</dest>
+            </ins>
+            <ins mnemonic="and">
+                <dest>reg1</dest>
+                <src>reg2</src>
+            </ins>
+        </gadget>
+        <gadget size="6">
+            <ins mnemonic="xor">
+                <dest>reg1</dest>
+                <src>reg1</src>
+            </ins>
+            <ins mnemonic="not">
+                <dest>reg1</dest>
+            </ins>
+            <ins mnemonic="and">
+                <dest>reg1</dest>
+                <src>reg1</src>
+            </ins>
+        </gadget>
+        <gadget>
+            <ins mnemonic="pop">
+                <dest value="0x00000000">reg1</dest>
+            </ins>
+            <ins mnemonic="andn">
+                <dest>reg3</dest>
+                <src>reg1</src>
+                <src>reg2</src>
+            </ins>
+        </gadget>
+        <gadget>
+            <ins mnemonic="xor">
+                <dest>reg1</dest>
+                <src>reg1</src>
+            </ins>
+            <ins mnemonic="andn">
+                <dest>reg3</dest>
+                <src>reg1</src>
+                <src>reg2</src>
+            </ins>
+        </gadget>
+        <gadget size="5">
+            <ins mnemonic="xor">
+                <dest>reg1</dest>
+                <src>reg1</src>
+            </ins>
+            <ins mnemonic="stc" />
+            <ins mnemonic="adc">
+                <dest>reg1</dest>
+                <src>reg2</src>
+            </ins>
+        </gadget>
+        <gadget size="8">
+            <ins mnemonic="xor">
+                <dest>reg1</dest>
+                <src>reg1</src>
+            </ins>
+            <ins mnemonic="xor">
+                <dest>reg2</dest>
+                <src>reg2</src>
+            </ins>
+            <ins mnemonic="neg">
+                <dest>reg1</dest>
+            </ins>
+            <ins mnemonic="adc">
+                <dest>reg2</dest>
+                <src>reg3</src>
+            </ins>
+        </gadget>
+        <gadget size="3">
+            <ins mnemonic="clc" />
+            <ins mnemonic="cmovnc">
+                <dest>reg1</dest>
+                <src>reg2</src>
+            </ins>
+        </gadget>
+        <gadget size="6">
+            <ins mnemonic="xor">
+                <dest>reg1</dest>
+                <src>reg1</src>
+            </ins>
+            <ins mnemonic="neg">
+                <dest>reg1</dest>
+            </ins>
+            <ins mnemonic="cmovc">
+                <dest>reg3</dest>
+                <src>reg2</src>
+            </ins>
+        </gadget>
+        <gadget size="4">
+            <ins mnemonic="neg">
+                <dest value="0xFFFFFFFF">reg1</dest>
+            </ins>
+            <ins mnemonic="cmovc">
+                <dest>reg2</dest>
+                <src>reg3</src>
+            </ins>
+        </gadget>
+        <gadget size="3">
+            <ins mnemonic="stc" />
+            <ins mnemonic="cmovc">
+                <dest>reg1</dest>
+                <src>reg2</src>
+            </ins>
+        </gadget>
+        <gadget>
+            <ins mnemonic="xor">
+                <dest>reg1</dest>
+                <src>reg1</src>
+            </ins>
+            <ins mnemonic="andn">
+                <dest>reg2</dest>
+                <src>reg1</src>
+                <src>reg3</src>
+            </ins>
+        </gadget>
+        <gadget size="8">
+            <ins mnemonic="xor">
+                <dest>reg1</dest>
+                <src>reg1</src>
+            </ins>
+            <ins mnemonic="not">
+                <dest>reg1</dest>
+            </ins>
+            <ins mnemonic="neg">
+                <dest>reg1</dest>
+            </ins>
+            <ins mnemonic="cmovc">
+                <dest>reg3</dest>
+                <src>reg2</src>
+            </ins>
+        </gadget>
+        <gadget size="2">
+            <ins mnemonic="mov">
+                <dest>reg1</dest>
+                <src>reg2</src>
+            </ins>
+        </gadget>
+        <gadget size="2">
+            <ins mnemonic="push">
+                <dest>reg1</dest>
+            </ins>
+            <ins mnemonic="pop">
+                <dest>reg2</dest>
+            </ins>
+        </gadget>
+        <gadget size="1">
+            <ins mnemonic="xchg">
+                <dest>reg1</dest>
+                <src>reg2</src>
+            </ins>
+        </gadget>
+        <gadget size="5">
+            <ins mnemonic="xor">
+                <dest>eax</dest>
+                <src>eax</src>
+            </ins>
+            <ins mnemonic="inc">
+                <dest>eax</dest>
+            </ins>
+            <ins mnemonic="mul">
+                <dest>reg1</dest>
+            </ins>
+        </gadget>
+        <gadget>
+            <ins mnemonic="xor">
+                <dest>reg1</dest>
+                <src>reg1</src>
+            </ins>
+            <ins mnemonic="xadd">
+                <dest>reg1</dest>
+                <src>reg2</src>
+            </ins>
+        </gadget>
+        <gadget size="6">
+            <ins mnemonic="xor">
+                <dest>reg1</dest>
+                <src>reg1</src>
+            </ins>
+            <ins mnemonic="neg">
+                <dest>reg2</dest>
+            </ins>
+            <ins mnemonic="sub">
+                <dest>reg1</dest>
+                <src>reg2</src>
+            </ins>
+        </gadget>
+    </operation>
+    <operation name="load">
+        <gadget size="1">
+            <ins mnemonic="lodsd">
+                <dest>reg</dest>
+            </ins>
+        </gadget>
+        <gadget size="2">
+            <ins mnemonic="mov">
+                <dest>reg</dest>
+                <src>address</src>
+            </ins>
+        </gadget>
+    </operation>
+    <operation name="store">
+        <gadget size="1">
+            <ins mnemonic="stosd">
+                <dest>reg</dest>
+            </ins>
+        </gadget>
+        <gadget size="2">
+            <ins mnemonic="mov">
+                <dest>address</dest>
+                <src>reg</src>
+            </ins>
+        </gadget>
+    </operation>
+    <operation name="add">
+        <gadget size="2">
+            <ins mnemonic="add">
+                <dest>reg1</dest>
+                <src>reg2</src>
+            </ins>
+        </gadget>
+        <gadget size="3">
+            <ins mnemonic="clc" />
+            <ins mnemonic="adc">
+                <dest>reg1</dest>
+                <src>reg2</src>
+            </ins>
+        </gadget>
+        <gadget size="6">
+            <ins mnemonic="xor">
+                <dest>reg1</dest>
+                <src>reg1</src>
+            </ins>
+            <ins mnemonic="neg">
+                <dest>reg1</dest>
+            </ins>
+            <ins mnemonic="adc">
+                <dest>reg2</dest>
+                <src>reg3</src>
+            </ins>
+        </gadget>
+    </operation>
+    <operation name="sub">
+        <gadget size="2">
+            <ins mnemonic="sub">
+                <dest>reg1</dest>
+                <src>reg2</src>
+            </ins>
+        </gadget>
+        <gadget size="3">
+            <ins mnemonic="clc" />
+            <ins mnemonic="sbb">
+                <dest>reg1</dest>
+                <src>reg2</src>
+            </ins>
+        </gadget>
+        <gadget size="6">
+            <ins mnemonic="xor">
+                <dest>reg1</dest>
+                <src>reg1</src>
+            </ins>
+            <ins mnemonic="neg">
+                <dest>reg1</dest>
+            </ins>
+            <ins mnemonic="sbb">
+                <dest>reg2</dest>
+                <src>reg3</src>
+            </ins>
+        </gadget>
+    </operation>
+    <operation name="and">
+        <gadget size="2">
+            <ins mnemonic="and">
+                <dest>reg1</dest>
+                <src>reg2</src>
+            </ins>
+        </gadget>
+        <gadget>
+            <ins mnemonic="not">
+                <dest>reg1</dest>
+            </ins>
+            <ins mnemonic="andn">
+                <dest>reg2</dest>
+                <src>reg1</src>
+                <src>reg3</src>
+            </ins>
+        </gadget>
+    </operation>
+    <operation name="or">
+        <gadget size="2">
+            <ins mnemonic="or">
+                <dest>reg1</dest>
+                <src>reg2</src>
+            </ins>
+        </gadget>
+    </operation>
+    <operation name="xor">
+        <gadget size="2">
+            <ins mnemonic="xor">
+                <dest>reg2</dest>
+                <src>reg1</src>
+            </ins>
+        </gadget>
+    </operation>
+    <operation name="not">
+        <gadget size="2">
+            <ins mnemonic="not">
+                <dest>reg</dest>
+            </ins>
+        </gadget>
+    </operation>
+    <operation name="conditional">
+        <gadget size="4">
+            <ins mnemonic="cmp">
+                <dest>reg1</dest>
+                <src>reg1</src>
+            </ins>
+            <ins mnemonic="je">
+                <dest>label</dest>
+            </ins>
+        </gadget>
+        <gadget size="4">
+            <ins mnemonic="cmp">
+                <dest>reg1</dest>
+                <src>reg1</src>
+            </ins>
+            <ins mnemonic="jen">
+                <dest>label</dest>
+            </ins>
+        </gadget>
+        <gadget size="4">
+            <ins mnemonic="test">
+                <dest>reg1</dest>
+                <src>reg1</src>
+            </ins>
+            <ins mnemonic="je">
+                <dest>label</dest>
+            </ins>
+        </gadget>
+        <gadget size="4">
+            <ins mnemonic="test">
+                <dest>reg1</dest>
+                <src>reg1</src>
+            </ins>
+            <ins mnemonic="jen">
+                <dest>label</dest>
+            </ins>
+        </gadget>
+    </operation>
+</operations>

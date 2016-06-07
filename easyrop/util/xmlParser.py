@@ -1,24 +1,24 @@
 import xml.etree.ElementTree
 
+from easyrop.operation import Operation
+from easyrop.gadget import Gadget
+from easyrop.instruction import Instruction
+
 
 class XmlParser:
-    def __init__(self, path):
+    def __init__(self, options, path):
         self.__file = xml.etree.ElementTree.parse(path).getroot()
-        self.__operations = []
+        self.__options = options
 
     def parse(self):
+        __operation = Operation(self.__options.op)
         for operation in self.__file.findall('operation'):
-            if operation.get('name') == 'move':
+            if operation.get('name') == self.__options.op:
                 for gadget in operation.iter('gadget'):
                     size = gadget.get('size')
-                    if size is not None:
-                        print('(%s bytes)' % gadget.get('size'))
+                    g = Gadget(size)
                     for ins in gadget.iter('ins'):
-                        print(ins.get('mnemonic'), end=" ")
-                        dest = ins.find('dest')
-                        src = ins.find('src')
-                        if src is not None:
-                            print(src.text, end=" ")
-                        if dest is not None:
-                            print(dest.text)
-                    print()
+                        i = Instruction(ins.get('mnemonic'), ins.find('src'), ins.find('dest'))
+                        g.addIntruction(i)
+                    __operation.addGadget(g)
+        return __operation

@@ -17,15 +17,12 @@ class Pe:
         self.__parseArch()
 
     def __parseArch(self):
-
         if hex(self.__pe.FILE_HEADER.Machine) == '0x14c':
             self.__archMode = CS_MODE_32
             self.__arch = CS_ARCH_X86
         elif hex(self.__pe.FILE_HEADER.Machine) == '0x8664':
             self.__archMode = CS_MODE_64
             self.__arch = CS_ARCH_X86
-        else:
-            self.__archMode = None
 
     def getFileName(self):
         return self.__fileName

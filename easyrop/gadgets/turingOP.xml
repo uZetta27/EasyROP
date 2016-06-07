@@ -16,10 +16,10 @@
         <!ELEMENT src (#PCDATA)>
         ]>
 <operations>
-    <operation name="load_constant">
+    <operation name="lc">
         <gadget size="1">
             <ins mnemonic="pop">
-                <dest>reg</dest>
+                <dest>reg1</dest>
             </ins>
         </gadget>
         <gadget size="1">
@@ -230,12 +230,12 @@
     <operation name="load">
         <gadget size="1">
             <ins mnemonic="lodsd">
-                <dest>reg</dest>
+                <dest>reg1</dest>
             </ins>
         </gadget>
         <gadget size="2">
             <ins mnemonic="mov">
-                <dest>reg</dest>
+                <dest>reg1</dest>
                 <src>address</src>
             </ins>
         </gadget>
@@ -243,13 +243,13 @@
     <operation name="store">
         <gadget size="1">
             <ins mnemonic="stosd">
-                <dest>reg</dest>
+                <dest>reg1</dest>
             </ins>
         </gadget>
         <gadget size="2">
             <ins mnemonic="mov">
                 <dest>address</dest>
-                <src>reg</src>
+                <src>reg1</src>
             </ins>
         </gadget>
     </operation>
@@ -346,11 +346,11 @@
     <operation name="not">
         <gadget size="2">
             <ins mnemonic="not">
-                <dest>reg</dest>
+                <dest>reg1</dest>
             </ins>
         </gadget>
     </operation>
-    <operation name="conditional">
+    <operation name="cond">
         <gadget size="4">
             <ins mnemonic="cmp">
                 <dest>reg1</dest>

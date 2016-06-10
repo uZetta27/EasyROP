@@ -31,7 +31,7 @@ class Pe:
         return self.__pe
 
     def getEntryPoint(self):
-        return self.__pe.OPTIONAL_HEADER.ImageBase
+        return self.__pe.OPTIONAL_HEADER.ImageBase + self.__pe.OPTIONAL_HEADER.BaseOfCode
 
     def getExecSections(self):
         return self.__pe.sections[0].get_data()

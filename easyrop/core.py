@@ -11,6 +11,7 @@ from capstone.x86_const import *
 class Core:
     def __init__(self, options):
         self.__options = options
+        self.__gadgets = []
 
     def analyze(self):
         path = os.getcwd() + '\easyrop\gadgets\\turingOP.xml'
@@ -18,6 +19,7 @@ class Core:
         operations = parser.parse()
         binary = Binary(self.__options)
         self.addROPGadgets(binary, operations)
+        self.printGadgets()
 
     def addROPGadgets(self, binary, operations):
         gadgets = [
@@ -28,7 +30,7 @@ class Core:
         ]
 
         if len(gadgets) > 0:
-            self.__searchGadgets(binary, gadgets, operations)
+            self.__gadgets += self.__searchGadgets(binary, gadgets, operations)
 
     def __searchGadgets(self, binary, gadgets, operations):
         section = binary.getExecSections()
@@ -40,16 +42,23 @@ class Core:
         C_SIZE = 1
         C_ALIGN = 2
 
+        ret = []
         md = Cs(arch, mode)
-        count = 0
         for gad in gadgets:
             allRefRet = [m.start() for m in re.finditer(gad[C_OP], section)]
             for ref in allRefRet:
-                decodes = md.disasm(section[ref - self.__options.depth:ref + gad[C_SIZE]], vaddr + ref - self.__options.depth)
-                if decodes:
-                    count += 1
-                    print('0x%x: ' % (vaddr + ref - self.__options.depth), end='')
-                    for decode in decodes:
-                        print("%s %s" % (decode.mnemonic, decode.op_str), end='; ')
-                    print()
-        print('\nGadgets found: %s' % count)
+                for depth in range(self.__options.depth):
+                    decodes = md.disasm(section[ref - depth:ref + gad[C_SIZE]], vaddr + ref - depth)
+                    if decodes:
+                        gadget = ""
+                        for decode in decodes:
+                            gadget += (decode.mnemonic + " " + decode.op_str + " ; ").replace("  ", " ")
+                        if len(gadget) > 0:
+                            ret += [{"vaddr": vaddr + ref - depth, "gadget": gadget, "bytes": section[ref - depth:ref + gad[C_SIZE]]}]
+        return ret
+
+    def printGadgets(self):
+        print("All gadgets information")
+        print("============================================")
+        for gad in self.__gadgets:
+            print("0x%x : %s" % (gad["vaddr"], gad["gadget"]))

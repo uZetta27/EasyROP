@@ -18,8 +18,8 @@ class Core:
         parser = Parser(self.__options, path)
         operations = parser.parse()
         binary = Binary(self.__options)
-        self.addROPGadgets(binary, operations)
-        self.printGadgets()
+        self.__gadgets += self.addROPGadgets(binary, operations)
+        self.__printGadgets(self.__gadgets)
 
     def addROPGadgets(self, binary, operations):
         gadgets = [
@@ -30,7 +30,7 @@ class Core:
         ]
 
         if len(gadgets) > 0:
-            self.__gadgets += self.__searchGadgets(binary, gadgets, operations)
+            return self.__searchGadgets(binary, gadgets, operations)
 
     def __searchGadgets(self, binary, gadgets, operations):
         section = binary.getExecSections()
@@ -48,31 +48,30 @@ class Core:
             for ref in allRefRet:
                 for depth in range(self.__options.depth):
                         decodes = md.disasm(section[ref - depth:ref + gad[C_SIZE]], vaddr + ref - depth)
-                        if decodes:
-                            gadget = ""
-                            for decode in decodes:
-                                gadget += (decode.mnemonic + " " + decode.op_str + " ; ").replace("  ", " ")
-                            if len(gadget) > 0:
-                                ret += [{"vaddr": vaddr + ref - depth, "gadget": gadget, "bytes": section[ref - depth:ref + gad[C_SIZE]]}]
+                        gadget = ""
+                        for decode in decodes:
+                            gadget += (decode.mnemonic + " " + decode.op_str + " ; ").replace("  ", " ")
+                        if len(gadget) > 0:
+                            gadget = gadget[:-3]
+                            ret += [{"vaddr": vaddr + ref - depth, "gadget": gadget, "bytes": section[ref - depth:ref + gad[C_SIZE]]}]
         return ret
 
-    def printGadgets(self):
-        print("All information gadgets")
-        print("============================================")
-        if self.__options.all:
-            gadgets = self.__gadgets
-        else:
-            gadgets = self.__deleteDuplicateGadgets()
+    def __printGadgets(self, gadgets):
+        print("Gadgets information")
+        print("============================================================")
+        if not self.__options.all:
+            gadgets = self.__deleteDuplicateGadgets(gadgets)
+        gadgets = self.__passClean(gadgets)
         gadgets = self.__alphaSortgadgets(gadgets)
 
         for gad in gadgets:
             print("0x%x : %s" % (gad["vaddr"], gad["gadget"]))
         print("\nGadgets found: %d" % len(gadgets))
 
-    def __deleteDuplicateGadgets(self):
+    def __deleteDuplicateGadgets(self, gadgets):
         gadgets_content_set = set()
         unique_gadgets = []
-        for gadget in self.__gadgets:
+        for gadget in gadgets:
             gad = gadget["gadget"]
             if gad in gadgets_content_set:
                 continue
@@ -82,3 +81,17 @@ class Core:
 
     def __alphaSortgadgets(self, currentGadgets):
         return sorted(currentGadgets, key=lambda key: key["gadget"])
+
+    def __passClean(self, gadgets):
+        new = []
+        br = ["ret", "retf"]
+        for gadget in gadgets:
+            insts = gadget["gadget"].split(" ; ")
+            if len(insts) == 1 and insts[0].split(" ")[0] not in br:
+                continue
+            if insts[-1].split(" ")[0] not in br:
+                continue
+            if len([m.start() for m in re.finditer("ret", gadget["gadget"])]) > 1:
+                continue
+            new += [gadget]
+        return new

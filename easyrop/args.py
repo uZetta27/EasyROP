@@ -17,6 +17,7 @@ class Args:
         parser.add_argument("-v", "--version", action="store_true", help="Display EasyROP's version")
         parser.add_argument("--binary", type=str, metavar="<path>", help="Specify a binary path to analyze")
         parser.add_argument("--depth", type=int, metavar="<bytes>", default=5, help="Depth for search engine (default 5 bytes)")
+        parser.add_argument("--all", action="store_true", help="Disables the removal of duplicate gadgets")
         parser.add_argument("--op", type=str, metavar="<op>", help="Search for operation: [lc, move, load, store, xor, not, add, sub, and, or, cond]")
         parser.add_argument("--reg-src", type=str, metavar="<reg>", help="Specify a source reg to operation")
         parser.add_argument("--reg-dst", type=str, metavar="<reg>", help="Specify a destination reg to operation")

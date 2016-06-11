@@ -18,10 +18,10 @@ class Core:
         parser = Parser(self.__options, path)
         operations = parser.parse()
         binary = Binary(self.__options)
-        self.__gadgets += self.addROPGadgets(binary, operations)
+        self.__gadgets += self.addROPGadgets(binary)
         self.__printGadgets(self.__gadgets)
 
-    def addROPGadgets(self, binary, operations):
+    def addROPGadgets(self, binary):
         gadgets = [
             [b"\xc3", 1],                # ret
             [b"\xc2[\x00-\xff]{2}", 3],  # ret <imm>
@@ -30,9 +30,9 @@ class Core:
         ]
 
         if len(gadgets) > 0:
-            return self.__searchGadgets(binary, gadgets, operations)
+            return self.__searchGadgets(binary, gadgets)
 
-    def __searchGadgets(self, binary, gadgets, operations):
+    def __searchGadgets(self, binary, gadgets):
         section = binary.getExecSections()
         vaddr = binary.getEntryPoint()
         arch = binary.getArch()

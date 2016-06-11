@@ -18,7 +18,7 @@ class Args:
         parser.add_argument("--binary", type=str, metavar="<path>", help="Specify a binary path to analyze")
         parser.add_argument("--depth", type=int, metavar="<bytes>", default=10, help="Depth for search engine (default 10 bytes)")
         parser.add_argument("--all", action="store_true", help="Disables the removal of duplicate gadgets")
-        parser.add_argument("--op", type=str, metavar="<op>", help="Search for operation: [lc, move, load, store, xor, not, add, sub, and, or, cond]")
+        parser.add_argument("--op", type=str, metavar="<op>", help="Search for operation: [lc, move, load, store, add, sub, xor, not, and, or, cond]")
         parser.add_argument("--reg-src", type=str, metavar="<reg>", help="Specify a source reg to operation")
         parser.add_argument("--reg-dst", type=str, metavar="<reg>", help="Specify a destination reg to operation")
 
@@ -28,7 +28,7 @@ class Args:
 
     def __do_opcodes(self):
         op = self.__args.op
-        if not (op == "lc" or op == "move" or op == "load" or op == "store" or op == "xor" or op == "not" or op == "add"
+        if op and not (op == "lc" or op == "move" or op == "load" or op == "store" or op == "xor" or op == "not" or op == "add"
                 or op == "sub" or op == "and" or op == "or" or op == "cond"):
             print("[Error] Unsupported operation. op must to be: [lc, move, load, store, add, sub, xor, not, and, or, cond]")
             sys.exit(-1)
@@ -48,10 +48,6 @@ class Args:
 
         elif not self.__args.op and (self.__args.reg_src or self.__args.reg_dst):
             print("[Error] reg specified without an opcode (--help)")
-            sys.exit(-1)
-
-        elif not self.__args.op:
-            print("[Error] Need an operation (--op or --help)")
             sys.exit(-1)
 
     def __print_version(self):

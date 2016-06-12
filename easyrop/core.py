@@ -19,6 +19,7 @@ class Core:
         operations = parser.parse()
         binary = Binary(self.__options)
         self.__gadgets += self.addROPGadgets(binary)
+        self.__gadgets += self.addJOPGadgets(binary)
         self.__printGadgets(self.__gadgets)
 
     def addROPGadgets(self, binary):
@@ -29,8 +30,17 @@ class Core:
             [b"\xca[\x00-\xff]{2}", 3]   # retf <imm>
         ]
 
-        if len(gadgets) > 0:
-            return self.__searchGadgets(binary, gadgets)
+        return self.__searchGadgets(binary, gadgets)
+
+    def addJOPGadgets(self, binary):
+        gadgets = [
+            [b"\xff[\x20\x21\x22\x23\x26\x27]{1}", 2],      # jmp  [reg]
+            [b"\xff[\xe0\xe1\xe2\xe3\xe4\xe6\xe7]{1}", 2],  # jmp  [reg]
+            [b"\xff[\x10\x11\x12\x13\x16\x17]{1}", 2],      # jmp  [reg]
+            [b"\xff[\xd0\xd1\xd2\xd3\xd4\xd6\xd7]{1}", 2]   # call [reg]
+        ]
+
+        return self.__searchGadgets(binary, gadgets)
 
     def __searchGadgets(self, binary, gadgets):
         section = binary.getExecSections()
@@ -84,7 +94,7 @@ class Core:
 
     def __passClean(self, gadgets):
         new = []
-        br = ["ret", "retf"]
+        br = ["ret", "retf", "int", "sysenter", "jmp", "call", "syscall"]
         for gadget in gadgets:
             insts = gadget["gadget"].split(" ; ")
             if len(insts) == 1 and insts[0].split(" ")[0] not in br:

@@ -20,4 +20,4 @@ class Instruction:
         return self.__dest
 
     def __str__(self):
-        return str(self.__mnemonic) + ' ' + str(self.__src) + ' ' + str(self.__dest) + '\n'
+        return (str(self.__mnemonic) + ' ' + str(self.__src) + ' ' + str(self.__dest)).replace('  ', ' ')

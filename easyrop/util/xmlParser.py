@@ -1,24 +1,25 @@
 import xml.etree.ElementTree
+import os
 
 from easyrop.operation import Operation
-from easyrop.gadget import Gadget
+from easyrop.set import Set
 from easyrop.instruction import Instruction
 
 
 class XmlParser:
-    def __init__(self, options, path):
+    def __init__(self, op):
+        path = os.getcwd() + '\easyrop\gadgets\\turingOP.xml'
         self.__file = xml.etree.ElementTree.parse(path).getroot()
-        self.__options = options
+        self.__op = op
 
     def parse(self):
-        __operation = Operation(self.__options.op)
+        __operation = Operation(self.__op)
         for operation in self.__file.findall('operation'):
-            if operation.get('name') == self.__options.op:
-                for gadget in operation.iter('gadget'):
-                    size = gadget.get('size')
-                    g = Gadget(size)
-                    for ins in gadget.iter('ins'):
+            if operation.get('name') == self.__op:
+                for set in operation.iter('set'):
+                    s = Set()
+                    for ins in set.iter('ins'):
                         i = Instruction(ins.get('mnemonic'), ins.find('src'), ins.find('dest'))
-                        g.addIntruction(i)
-                    __operation.addGadget(g)
+                        s.addIntruction(i)
+                    __operation.addSet(s)
         return __operation

@@ -2,13 +2,13 @@ from easyrop.util.xmlParser import XmlParser
 
 
 class Parser:
-    def __init__(self, options, path):
+    def __init__(self, op):
         self.__file = None
 
         try:
-            self.__file = XmlParser(options, path)
+            self.__file = XmlParser(op)
         except:
-            print("[Error] Can't open the gadget source (%s)" % path)
+            print("[Error] Can't read form gadget source")
             return None
 
     def parse(self):

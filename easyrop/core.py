@@ -1,11 +1,9 @@
-import os
 import re
 
 from easyrop.binary import Binary
 from easyrop.util.parser import Parser
 
 from capstone import *
-from capstone.x86_const import *
 
 
 class Core:
@@ -14,13 +12,21 @@ class Core:
         self.__gadgets = []
 
     def analyze(self):
-        path = os.getcwd() + '\easyrop\gadgets\\turingOP.xml'
-        parser = Parser(self.__options, path)
-        operations = parser.parse()
         binary = Binary(self.__options)
+        # search for gadgets
         self.__gadgets += self.addROPGadgets(binary)
         self.__gadgets += self.addJOPGadgets(binary)
-        self.__printGadgets(self.__gadgets)
+        # apply some options
+        if not self.__options.all:
+            self.__gadgets = self.__deleteDuplicateGadgets(self.__gadgets)
+        self.__gadgets = self.__passClean(self.__gadgets)
+        # print
+        if self.__options.op:
+            gadgets = self.__searchOperation(self.__options.op, self.__options.reg_src, self.__options.reg_dst)
+            gadgets = self.__deleteDuplicateGadgets(gadgets)
+            self.__printGadgets(gadgets)
+        else:
+            self.__printGadgets(self.__gadgets)
 
     def addROPGadgets(self, binary):
         gadgets = [
@@ -66,14 +72,30 @@ class Core:
                             ret += [{"vaddr": vaddr + ref - depth, "gadget": gadget, "bytes": section[ref - depth:ref + gad[C_SIZE]]}]
         return ret
 
+    def __searchOperation(self, op, src, dst):
+        if not src:
+            src = ''
+        if not dst:
+            dst = ''
+        parser = Parser(op)
+        operation = parser.parse()
+        sets = operation.getSets()
+        ret = []
+        # TODO generate ropchains that constitutes an operation
+        for set in sets:
+            for gadget in self.__gadgets:
+                gad = gadget["gadget"]
+                toSearch = str(set).replace('reg2', src).replace('reg1', dst).replace('  ', ' ')
+                print(toSearch)
+                searched = re.match(toSearch, gad)
+                if searched:
+                    ret += [{"vaddr": gadget["vaddr"], "gadget": gadget["gadget"], "bytes": gadget["bytes"]}]
+        return ret
+
     def __printGadgets(self, gadgets):
         print("Gadgets information")
         print("============================================================")
-        if not self.__options.all:
-            gadgets = self.__deleteDuplicateGadgets(gadgets)
-        gadgets = self.__passClean(gadgets)
         gadgets = self.__alphaSortgadgets(gadgets)
-
         for gad in gadgets:
             print("0x%x : %s" % (gad["vaddr"], gad["gadget"]))
         print("\nGadgets found: %d" % len(gadgets))
@@ -94,7 +116,7 @@ class Core:
 
     def __passClean(self, gadgets):
         new = []
-        br = ["ret", "retf", "int", "sysenter", "jmp", "call", "syscall"]
+        br = ["ret", "retf", "jmp", "call"]
         for gadget in gadgets:
             insts = gadget["gadget"].split(" ; ")
             if len(insts) == 1 and insts[0].split(" ")[0] not in br:

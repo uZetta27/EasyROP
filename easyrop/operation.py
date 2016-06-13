@@ -1,16 +1,16 @@
 class Operation:
     def __init__(self, name):
         self.__name = name
-        self.__gadgets = []
+        self.__sets = []
 
-    def addGadget(self, gadget):
-        self.__gadgets.append(gadget)
+    def addSet(self, set):
+        self.__sets.append(set)
 
-    def getGadgets(self):
-        return self.__gadgets
+    def getSets(self):
+        return self.__sets
 
     def __str__(self):
         string = ''
-        for gadget in self.__gadgets:
-            string += str(gadget)
+        for set in self.__sets:
+            string += str(set) + '\n'
         return string

@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE operations [
         <!ELEMENT operations (operation)+>
-        <!ELEMENT operation (gadget)+>
+        <!ELEMENT operation (set)+>
         <!ATTLIST operation
                 name CDATA #REQUIRED>
-        <!ELEMENT gadget (ins)+>
-        <!ATTLIST gadget
-                size CDATA #IMPLIED> <!-- size in bytes -->
+        <!ELEMENT set (ins)+>
         <!ELEMENT ins (dest|src)*>
         <!ATTLIST ins
                 mnemonic CDATA #REQUIRED>
@@ -17,17 +15,17 @@
         ]>
 <operations>
     <operation name="lc">
-        <gadget size="1">
+        <set>
             <ins mnemonic="pop">
                 <dest>reg1</dest>
             </ins>
-        </gadget>
-        <gadget size="1">
+        </set>
+        <set>
             <ins mnemonic="popad" />
-        </gadget>
+        </set>
     </operation>
     <operation name="move">
-        <gadget size="4">
+        <set>
             <ins mnemonic="xor">
                 <dest>reg1</dest>
                 <src>reg1</src>
@@ -36,8 +34,8 @@
                 <dest>reg1</dest>
                 <src>reg2</src>
             </ins>
-        </gadget>
-        <gadget size="3">
+        </set>
+        <set>
             <ins mnemonic="pop">
                 <dest value="0xFFFFFFFF">reg1</dest>
             </ins>
@@ -45,8 +43,8 @@
                 <dest>reg1</dest>
                 <src>reg2</src>
             </ins>
-        </gadget>
-        <gadget size="6">
+        </set>
+        <set>
             <ins mnemonic="xor">
                 <dest>reg1</dest>
                 <src>reg1</src>
@@ -58,8 +56,8 @@
                 <dest>reg1</dest>
                 <src>reg1</src>
             </ins>
-        </gadget>
-        <gadget>
+        </set>
+        <set>
             <ins mnemonic="pop">
                 <dest value="0x00000000">reg1</dest>
             </ins>
@@ -68,8 +66,8 @@
                 <src>reg1</src>
                 <src>reg2</src>
             </ins>
-        </gadget>
-        <gadget>
+        </set>
+        <set>
             <ins mnemonic="xor">
                 <dest>reg1</dest>
                 <src>reg1</src>
@@ -79,8 +77,8 @@
                 <src>reg1</src>
                 <src>reg2</src>
             </ins>
-        </gadget>
-        <gadget size="5">
+        </set>
+        <set>
             <ins mnemonic="xor">
                 <dest>reg1</dest>
                 <src>reg1</src>
@@ -90,8 +88,8 @@
                 <dest>reg1</dest>
                 <src>reg2</src>
             </ins>
-        </gadget>
-        <gadget size="8">
+        </set>
+        <set>
             <ins mnemonic="xor">
                 <dest>reg1</dest>
                 <src>reg1</src>
@@ -107,15 +105,15 @@
                 <dest>reg2</dest>
                 <src>reg3</src>
             </ins>
-        </gadget>
-        <gadget size="3">
+        </set>
+        <set>
             <ins mnemonic="clc" />
             <ins mnemonic="cmovnc">
                 <dest>reg1</dest>
                 <src>reg2</src>
             </ins>
-        </gadget>
-        <gadget size="6">
+        </set>
+        <set>
             <ins mnemonic="xor">
                 <dest>reg1</dest>
                 <src>reg1</src>
@@ -127,8 +125,8 @@
                 <dest>reg3</dest>
                 <src>reg2</src>
             </ins>
-        </gadget>
-        <gadget size="4">
+        </set>
+        <set>
             <ins mnemonic="neg">
                 <dest value="0xFFFFFFFF">reg1</dest>
             </ins>
@@ -136,15 +134,15 @@
                 <dest>reg2</dest>
                 <src>reg3</src>
             </ins>
-        </gadget>
-        <gadget size="3">
+        </set>
+        <set>
             <ins mnemonic="stc" />
             <ins mnemonic="cmovc">
                 <dest>reg1</dest>
                 <src>reg2</src>
             </ins>
-        </gadget>
-        <gadget>
+        </set>
+        <set>
             <ins mnemonic="xor">
                 <dest>reg1</dest>
                 <src>reg1</src>
@@ -154,8 +152,8 @@
                 <src>reg1</src>
                 <src>reg3</src>
             </ins>
-        </gadget>
-        <gadget size="8">
+        </set>
+        <set>
             <ins mnemonic="xor">
                 <dest>reg1</dest>
                 <src>reg1</src>
@@ -170,28 +168,28 @@
                 <dest>reg3</dest>
                 <src>reg2</src>
             </ins>
-        </gadget>
-        <gadget size="2">
+        </set>
+        <set>
             <ins mnemonic="mov">
                 <dest>reg1</dest>
                 <src>reg2</src>
             </ins>
-        </gadget>
-        <gadget size="2">
+        </set>
+        <set>
             <ins mnemonic="push">
                 <dest>reg1</dest>
             </ins>
             <ins mnemonic="pop">
                 <dest>reg2</dest>
             </ins>
-        </gadget>
-        <gadget size="1">
+        </set>
+        <set>
             <ins mnemonic="xchg">
                 <dest>reg1</dest>
                 <src>reg2</src>
             </ins>
-        </gadget>
-        <gadget size="5">
+        </set>
+        <set>
             <ins mnemonic="xor">
                 <dest>eax</dest>
                 <src>eax</src>
@@ -202,8 +200,8 @@
             <ins mnemonic="mul">
                 <dest>reg1</dest>
             </ins>
-        </gadget>
-        <gadget>
+        </set>
+        <set>
             <ins mnemonic="xor">
                 <dest>reg1</dest>
                 <src>reg1</src>
@@ -212,8 +210,8 @@
                 <dest>reg1</dest>
                 <src>reg2</src>
             </ins>
-        </gadget>
-        <gadget size="6">
+        </set>
+        <set>
             <ins mnemonic="xor">
                 <dest>reg1</dest>
                 <src>reg1</src>
@@ -225,49 +223,49 @@
                 <dest>reg1</dest>
                 <src>reg2</src>
             </ins>
-        </gadget>
+        </set>
     </operation>
     <operation name="load">
-        <gadget size="1">
+        <set>
             <ins mnemonic="lodsd">
                 <dest>reg1</dest>
             </ins>
-        </gadget>
-        <gadget size="2">
+        </set>
+        <set>
             <ins mnemonic="mov">
                 <dest>reg1</dest>
                 <src>address</src>
             </ins>
-        </gadget>
+        </set>
     </operation>
     <operation name="store">
-        <gadget size="1">
+        <set>
             <ins mnemonic="stosd">
                 <dest>reg1</dest>
             </ins>
-        </gadget>
-        <gadget size="2">
+        </set>
+        <set>
             <ins mnemonic="mov">
                 <dest>address</dest>
                 <src>reg1</src>
             </ins>
-        </gadget>
+        </set>
     </operation>
     <operation name="add">
-        <gadget size="2">
+        <set>
             <ins mnemonic="add">
                 <dest>reg1</dest>
                 <src>reg2</src>
             </ins>
-        </gadget>
-        <gadget size="3">
+        </set>
+        <set>
             <ins mnemonic="clc" />
             <ins mnemonic="adc">
                 <dest>reg1</dest>
                 <src>reg2</src>
             </ins>
-        </gadget>
-        <gadget size="6">
+        </set>
+        <set>
             <ins mnemonic="xor">
                 <dest>reg1</dest>
                 <src>reg1</src>
@@ -279,23 +277,23 @@
                 <dest>reg2</dest>
                 <src>reg3</src>
             </ins>
-        </gadget>
+        </set>
     </operation>
     <operation name="sub">
-        <gadget size="2">
+        <set>
             <ins mnemonic="sub">
                 <dest>reg1</dest>
                 <src>reg2</src>
             </ins>
-        </gadget>
-        <gadget size="3">
+        </set>
+        <set>
             <ins mnemonic="clc" />
             <ins mnemonic="sbb">
                 <dest>reg1</dest>
                 <src>reg2</src>
             </ins>
-        </gadget>
-        <gadget size="6">
+        </set>
+        <set>
             <ins mnemonic="xor">
                 <dest>reg1</dest>
                 <src>reg1</src>
@@ -307,16 +305,16 @@
                 <dest>reg2</dest>
                 <src>reg3</src>
             </ins>
-        </gadget>
+        </set>
     </operation>
     <operation name="and">
-        <gadget size="2">
+        <set>
             <ins mnemonic="and">
                 <dest>reg1</dest>
                 <src>reg2</src>
             </ins>
-        </gadget>
-        <gadget>
+        </set>
+        <set>
             <ins mnemonic="not">
                 <dest>reg1</dest>
             </ins>
@@ -325,33 +323,33 @@
                 <src>reg1</src>
                 <src>reg3</src>
             </ins>
-        </gadget>
+        </set>
     </operation>
     <operation name="or">
-        <gadget size="2">
+        <set>
             <ins mnemonic="or">
                 <dest>reg1</dest>
                 <src>reg2</src>
             </ins>
-        </gadget>
+        </set>
     </operation>
     <operation name="xor">
-        <gadget size="2">
+        <set>
             <ins mnemonic="xor">
                 <dest>reg2</dest>
                 <src>reg1</src>
             </ins>
-        </gadget>
+        </set>
     </operation>
     <operation name="not">
-        <gadget size="2">
+        <set>
             <ins mnemonic="not">
                 <dest>reg1</dest>
             </ins>
-        </gadget>
+        </set>
     </operation>
     <operation name="cond">
-        <gadget size="4">
+        <set>
             <ins mnemonic="cmp">
                 <dest>reg1</dest>
                 <src>reg1</src>
@@ -359,8 +357,8 @@
             <ins mnemonic="je">
                 <dest>label</dest>
             </ins>
-        </gadget>
-        <gadget size="4">
+        </set>
+        <set>
             <ins mnemonic="cmp">
                 <dest>reg1</dest>
                 <src>reg1</src>
@@ -368,8 +366,8 @@
             <ins mnemonic="jen">
                 <dest>label</dest>
             </ins>
-        </gadget>
-        <gadget size="4">
+        </set>
+        <set>
             <ins mnemonic="test">
                 <dest>reg1</dest>
                 <src>reg1</src>
@@ -377,8 +375,8 @@
             <ins mnemonic="je">
                 <dest>label</dest>
             </ins>
-        </gadget>
-        <gadget size="4">
+        </set>
+        <set>
             <ins mnemonic="test">
                 <dest>reg1</dest>
                 <src>reg1</src>
@@ -386,6 +384,6 @@
             <ins mnemonic="jen">
                 <dest>label</dest>
             </ins>
-        </gadget>
+        </set>
     </operation>
 </operations>

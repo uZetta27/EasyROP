@@ -73,17 +73,18 @@ class Core:
         return ret
 
     def __searchOperation(self, op, src, dst):
+        characters = "[a-zA-Z0-9\+\-\[\] ]*"
         if not src:
-            src = '.*'
+            src = characters
         if not dst:
-            dst = '.*'
+            dst = characters
         parser = Parser(op)
         operation = parser.parse()
         sets = operation.getSets()
         ret = []
         # TODO generate ropchains that constitutes an operation
         for s in sets:
-            toSearch = str(s).replace('reg1', dst).replace('reg2', src).replace('reg3', '.*').replace('  ', ' ')
+            toSearch = str(s).replace('reg1', characters + dst + characters).replace('reg2', characters + src + characters).replace('reg3', characters).replace('address', characters) + ' ; '
             for gadget in self.__gadgets:
                 gad = gadget["gadget"]
                 searched = re.match(toSearch, gad)

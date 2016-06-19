@@ -246,6 +246,11 @@
                 <src>reg2</src>
             </ins>
         </set>
+        <set>
+            <ins mnemonic="inc">
+                <dst>reg1</dst>
+            </ins>
+        </set>
     </operation>
     <operation name="sub">
         <set>
@@ -272,6 +277,11 @@
             <ins mnemonic="sbb">
                 <dst>reg1</dst>
                 <src>reg2</src>
+            </ins>
+        </set>
+        <set>
+            <ins mnemonic="dec">
+                <dst>reg1</dst>
             </ins>
         </set>
     </operation>

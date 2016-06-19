@@ -5,11 +5,11 @@
         <!ATTLIST operation
                 name CDATA #REQUIRED>
         <!ELEMENT set (ins)+>
-        <!ELEMENT ins (dest|src)*>
+        <!ELEMENT ins (dst|src)*>
         <!ATTLIST ins
                 mnemonic CDATA #REQUIRED>
-        <!ELEMENT dest (#PCDATA)>
-        <!ATTLIST dest
+        <!ELEMENT dst (#PCDATA)>
+        <!ATTLIST dst
                 value CDATA #IMPLIED>
         <!ELEMENT src (#PCDATA)>
         ]>
@@ -17,7 +17,7 @@
     <operation name="lc">
         <set>
             <ins mnemonic="pop">
-                <dest>reg1</dest>
+                <dst>reg1</dst>
             </ins>
         </set>
         <set>
@@ -27,200 +27,168 @@
     <operation name="move">
         <set>
             <ins mnemonic="xor">
-                <dest>reg1</dest>
+                <dst>reg1</dst>
                 <src>reg1</src>
             </ins>
             <ins mnemonic="add">
-                <dest>reg1</dest>
+                <dst>reg1</dst>
                 <src>reg2</src>
             </ins>
         </set>
         <set>
             <ins mnemonic="pop">
-                <dest value="0xFFFFFFFF">reg1</dest>
+                <dst value="0xFFFFFFFF">reg1</dst>
             </ins>
             <ins mnemonic="and">
-                <dest>reg1</dest>
+                <dst>reg1</dst>
                 <src>reg2</src>
             </ins>
         </set>
         <set>
             <ins mnemonic="xor">
-                <dest>reg1</dest>
+                <dst>reg1</dst>
                 <src>reg1</src>
             </ins>
             <ins mnemonic="not">
-                <dest>reg1</dest>
+                <dst>reg1</dst>
             </ins>
             <ins mnemonic="and">
-                <dest>reg1</dest>
-                <src>reg1</src>
-            </ins>
-        </set>
-        <set>
-            <ins mnemonic="pop">
-                <dest value="0x00000000">reg1</dest>
-            </ins>
-            <ins mnemonic="andn">
-                <dest>reg3</dest>
-                <src>reg1</src>
+                <dst>reg1</dst>
                 <src>reg2</src>
             </ins>
         </set>
         <set>
             <ins mnemonic="xor">
-                <dest>reg1</dest>
-                <src>reg1</src>
-            </ins>
-            <ins mnemonic="andn">
-                <dest>reg3</dest>
-                <src>reg1</src>
-                <src>reg2</src>
-            </ins>
-        </set>
-        <set>
-            <ins mnemonic="xor">
-                <dest>reg1</dest>
+                <dst>reg1</dst>
                 <src>reg1</src>
             </ins>
             <ins mnemonic="stc" />
             <ins mnemonic="adc">
-                <dest>reg1</dest>
+                <dst>reg1</dst>
                 <src>reg2</src>
             </ins>
         </set>
         <set>
             <ins mnemonic="xor">
-                <dest>reg1</dest>
-                <src>reg1</src>
+                <dst>reg3</dst>
+                <src>reg3</src>
             </ins>
             <ins mnemonic="xor">
-                <dest>reg2</dest>
-                <src>reg2</src>
+                <dst>reg1</dst>
+                <src>reg1</src>
             </ins>
             <ins mnemonic="neg">
-                <dest>reg1</dest>
+                <dst>reg3</dst>
             </ins>
             <ins mnemonic="adc">
-                <dest>reg2</dest>
-                <src>reg3</src>
+                <dst>reg1</dst>
+                <src>reg2</src>
             </ins>
         </set>
         <set>
             <ins mnemonic="clc" />
             <ins mnemonic="cmovnc">
-                <dest>reg1</dest>
+                <dst>reg1</dst>
                 <src>reg2</src>
             </ins>
         </set>
         <set>
             <ins mnemonic="xor">
-                <dest>reg1</dest>
-                <src>reg1</src>
+                <dst>reg3</dst>
+                <src>reg3</src>
             </ins>
             <ins mnemonic="neg">
-                <dest>reg1</dest>
+                <dst>reg3</dst>
             </ins>
             <ins mnemonic="cmovc">
-                <dest>reg3</dest>
+                <dst>reg1</dst>
                 <src>reg2</src>
             </ins>
         </set>
         <set>
             <ins mnemonic="neg">
-                <dest value="0xFFFFFFFF">reg1</dest>
+                <dst value="0xFFFFFFFF">reg3</dst>
             </ins>
             <ins mnemonic="cmovc">
-                <dest>reg2</dest>
-                <src>reg3</src>
+                <dst>reg1</dst>
+                <src>reg2</src>
             </ins>
         </set>
         <set>
             <ins mnemonic="stc" />
             <ins mnemonic="cmovc">
-                <dest>reg1</dest>
+                <dst>reg1</dst>
                 <src>reg2</src>
             </ins>
         </set>
         <set>
             <ins mnemonic="xor">
-                <dest>reg1</dest>
-                <src>reg1</src>
-            </ins>
-            <ins mnemonic="andn">
-                <dest>reg2</dest>
-                <src>reg1</src>
+                <dst>reg3</dst>
                 <src>reg3</src>
             </ins>
-        </set>
-        <set>
-            <ins mnemonic="xor">
-                <dest>reg1</dest>
-                <src>reg1</src>
-            </ins>
             <ins mnemonic="not">
-                <dest>reg1</dest>
+                <dst>reg3</dst>
             </ins>
             <ins mnemonic="neg">
-                <dest>reg1</dest>
+                <dst>reg3</dst>
             </ins>
             <ins mnemonic="cmovc">
-                <dest>reg3</dest>
+                <dst>reg1</dst>
                 <src>reg2</src>
             </ins>
         </set>
         <set>
             <ins mnemonic="mov">
-                <dest>reg1</dest>
+                <dst>reg1</dst>
                 <src>reg2</src>
             </ins>
         </set>
         <set>
             <ins mnemonic="push">
-                <dest>reg1</dest>
+                <src>reg2</src>
             </ins>
             <ins mnemonic="pop">
-                <dest>reg2</dest>
+                <dst>reg1</dst>
             </ins>
         </set>
         <set>
             <ins mnemonic="xchg">
-                <dest>reg1</dest>
+                <dst>reg1</dst>
                 <src>reg2</src>
             </ins>
         </set>
         <set>
             <ins mnemonic="xor">
-                <dest>eax</dest>
+                <dst>eax</dst>
                 <src>eax</src>
             </ins>
             <ins mnemonic="inc">
-                <dest>eax</dest>
+                <dst>eax</dst>
             </ins>
             <ins mnemonic="mul">
-                <dest>reg1</dest>
+                <dst>reg1</dst>
             </ins>
         </set>
         <set>
             <ins mnemonic="xor">
-                <dest>reg1</dest>
-                <src>reg1</src>
-            </ins>
-            <ins mnemonic="xadd">
-                <dest>reg1</dest>
+                <dst>reg2</dst>
                 <src>reg2</src>
             </ins>
+            <ins mnemonic="xadd">
+                <dst>reg2</dst>
+                <src>reg1</src>
+            </ins>
         </set>
         <set>
             <ins mnemonic="xor">
-                <dest>reg1</dest>
+                <dst>reg1</dst>
                 <src>reg1</src>
             </ins>
             <ins mnemonic="neg">
-                <dest>reg2</dest>
+                <dst>reg2</dst>
             </ins>
             <ins mnemonic="sub">
-                <dest>reg1</dest>
+                <dst>reg1</dst>
                 <src>reg2</src>
             </ins>
         </set>
@@ -228,12 +196,12 @@
     <operation name="load">
         <set>
             <ins mnemonic="lodsd">
-                <dest>reg1</dest>
+                <dst>reg1</dst>
             </ins>
         </set>
         <set>
             <ins mnemonic="mov">
-                <dest>reg1</dest>
+                <dst>reg1</dst>
                 <src>address</src>
             </ins>
         </set>
@@ -241,12 +209,12 @@
     <operation name="store">
         <set>
             <ins mnemonic="stosd">
-                <dest>reg1</dest>
+                <dst>reg1</dst>
             </ins>
         </set>
         <set>
             <ins mnemonic="mov">
-                <dest>address</dest>
+                <dst>address</dst>
                 <src>reg1</src>
             </ins>
         </set>
@@ -254,81 +222,71 @@
     <operation name="add">
         <set>
             <ins mnemonic="add">
-                <dest>reg1</dest>
+                <dst>reg1</dst>
                 <src>reg2</src>
             </ins>
         </set>
         <set>
             <ins mnemonic="clc" />
             <ins mnemonic="adc">
-                <dest>reg1</dest>
+                <dst>reg1</dst>
                 <src>reg2</src>
             </ins>
         </set>
         <set>
             <ins mnemonic="xor">
-                <dest>reg1</dest>
-                <src>reg1</src>
+                <dst>reg3</dst>
+                <src>reg3</src>
             </ins>
             <ins mnemonic="neg">
-                <dest>reg1</dest>
+                <dst>reg3</dst>
             </ins>
             <ins mnemonic="adc">
-                <dest>reg2</dest>
-                <src>reg3</src>
+                <dst>reg1</dst>
+                <src>reg2</src>
             </ins>
         </set>
     </operation>
     <operation name="sub">
         <set>
             <ins mnemonic="sub">
-                <dest>reg1</dest>
+                <dst>reg1</dst>
                 <src>reg2</src>
             </ins>
         </set>
         <set>
             <ins mnemonic="clc" />
             <ins mnemonic="sbb">
-                <dest>reg1</dest>
+                <dst>reg1</dst>
                 <src>reg2</src>
             </ins>
         </set>
         <set>
             <ins mnemonic="xor">
-                <dest>reg1</dest>
-                <src>reg1</src>
+                <dst>reg3</dst>
+                <src>reg3</src>
             </ins>
             <ins mnemonic="neg">
-                <dest>reg1</dest>
+                <dst>reg3</dst>
             </ins>
             <ins mnemonic="sbb">
-                <dest>reg2</dest>
-                <src>reg3</src>
+                <dst>reg1</dst>
+                <src>reg2</src>
             </ins>
         </set>
     </operation>
     <operation name="and">
         <set>
             <ins mnemonic="and">
-                <dest>reg1</dest>
+                <dst>reg1</dst>
                 <src>reg2</src>
-            </ins>
-        </set>
-        <set>
-            <ins mnemonic="not">
-                <dest>reg1</dest>
-            </ins>
-            <ins mnemonic="andn">
-                <dest>reg2</dest>
-                <src>reg1</src>
-                <src>reg3</src>
             </ins>
         </set>
     </operation>
     <operation name="or">
         <set>
             <ins mnemonic="or">
-                <dest>reg1</dest>
+                <dst>reg1</dst>
                 <src>reg2</src>
             </ins>
         </set>
@@ -336,53 +294,53 @@
     <operation name="xor">
         <set>
             <ins mnemonic="xor">
-                <dest>reg2</dest>
-                <src>reg1</src>
+                <dst>reg1</dst>
+                <src>reg2</src>
             </ins>
         </set>
     </operation>
     <operation name="not">
         <set>
             <ins mnemonic="not">
-                <dest>reg1</dest>
+                <dst>reg1</dst>
             </ins>
         </set>
     </operation>
     <operation name="cond">
         <set>
             <ins mnemonic="cmp">
-                <dest>reg1</dest>
-                <src>reg1</src>
+                <dst>reg1</dst>
+                <src>reg2</src>
             </ins>
             <ins mnemonic="je">
-                <dest>label</dest>
+                <dst>address</dst>
             </ins>
         </set>
         <set>
             <ins mnemonic="cmp">
-                <dest>reg1</dest>
-                <src>reg1</src>
+                <dst>reg1</dst>
+                <src>reg2</src>
             </ins>
             <ins mnemonic="jen">
-                <dest>label</dest>
+                <dst>address</dst>
             </ins>
         </set>
         <set>
             <ins mnemonic="test">
-                <dest>reg1</dest>
-                <src>reg1</src>
+                <dst>reg1</dst>
+                <src>reg2</src>
             </ins>
             <ins mnemonic="je">
-                <dest>label</dest>
+                <dst>address</dst>
             </ins>
         </set>
         <set>
             <ins mnemonic="test">
-                <dest>reg1</dest>
-                <src>reg1</src>
+                <dst>reg1</dst>
+                <src>reg2</src>
             </ins>
             <ins mnemonic="jen">
-                <dest>label</dest>
+                <dst>address</dst>
             </ins>
         </set>
     </operation>

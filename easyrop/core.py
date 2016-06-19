@@ -74,19 +74,18 @@ class Core:
 
     def __searchOperation(self, op, src, dst):
         if not src:
-            src = ''
+            src = '.*'
         if not dst:
-            dst = ''
+            dst = '.*'
         parser = Parser(op)
         operation = parser.parse()
         sets = operation.getSets()
         ret = []
         # TODO generate ropchains that constitutes an operation
-        for set in sets:
+        for s in sets:
+            toSearch = str(s).replace('reg1', dst).replace('reg2', src).replace('reg3', '.*').replace('  ', ' ')
             for gadget in self.__gadgets:
                 gad = gadget["gadget"]
-                toSearch = str(set).replace('reg2', src).replace('reg1', dst).replace('  ', ' ')
-                print(toSearch)
                 searched = re.match(toSearch, gad)
                 if searched:
                     ret += [{"vaddr": gadget["vaddr"], "gadget": gadget["gadget"], "bytes": gadget["bytes"]}]

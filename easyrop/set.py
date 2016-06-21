@@ -2,6 +2,14 @@ class Set:
     def __init__(self):
         self.__instructions = []
 
+    def setDst(self, dst):
+        for ins in self.__instructions:
+            ins.setDst(dst)
+
+    def setSrc(self, src):
+        for ins in self.__instructions:
+            ins.setSrc(src)
+
     def addIntruction(self, instruction):
         self.__instructions.append(instruction)
 

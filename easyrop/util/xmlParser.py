@@ -19,7 +19,7 @@ class XmlParser:
                 for set in operation.iter('set'):
                     s = Set()
                     for ins in set.iter('ins'):
-                        i = Instruction(ins.get('mnemonic'), ins.find('src'), ins.find('dst'))
+                        i = Instruction(ins.get('mnemonic'), ins.find('reg1'), ins.find('reg2'))
                         s.addIntruction(i)
                     __operation.addSet(s)
         return __operation

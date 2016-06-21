@@ -3,6 +3,14 @@ class Operation:
         self.__name = name
         self.__sets = []
 
+    def setDst(self, dst):
+        for set in self.__sets:
+            set.setDst(dst)
+
+    def setSrc(self, src):
+        for set in self.__sets:
+            set.setSrc(src)
+
     def addSet(self, set):
         self.__sets.append(set)
 

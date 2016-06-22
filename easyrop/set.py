@@ -21,4 +21,4 @@ class Set:
         for instruction in self.__instructions:
             string += str(instruction) + " ; "
         string = string.replace('  ', ' ')
-        return string[:-3]
+        return string

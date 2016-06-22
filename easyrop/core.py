@@ -73,15 +73,15 @@ class Core:
         return ret
 
     def __searchOperation(self, op, src, dst):
-        _re = "[a-zA-Z0-9\+\-\[\] ]*"
+        __re = "[a-zA-Z0-9\+\-\[\] ]*"
         if not src:
-            src = _re
+            src = __re
         if not dst:
-            dst = _re
+            dst = __re
         parser = Parser(op)
         operation = parser.parse()
-        operation.setDst(_re + dst + _re)
-        operation.setSrc(_re + src + _re)
+        operation.setDst(dst)
+        operation.setSrc(src)
         sets = operation.getSets()
         ret = []
         # TODO generate ropchains that constitutes an operation

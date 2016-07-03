@@ -3,12 +3,14 @@ class Set:
         self.__instructions = []
 
     def setDst(self, dst):
-        for ins in self.__instructions:
-            ins.setDst(dst)
+        if dst is not None:
+            for ins in self.__instructions:
+                ins.setDst(dst)
 
     def setSrc(self, src):
-        for ins in self.__instructions:
-            ins.setSrc(src)
+        if src is not None:
+            for ins in self.__instructions:
+                ins.setSrc(src)
 
     def addIntruction(self, instruction):
         self.__instructions.append(instruction)
@@ -20,5 +22,5 @@ class Set:
         string = ''
         for instruction in self.__instructions:
             string += str(instruction) + " ; "
-        string = string.replace('  ', ' ')
+        string = string.replace('  ', ' ').replace(', ;', ' ;')
         return string

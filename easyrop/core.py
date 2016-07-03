@@ -1,9 +1,11 @@
 import re
+import copy
 
 from easyrop.binary import Binary
 from easyrop.util.parser import Parser
 
 from capstone import *
+from capstone.x86 import *
 
 
 class Core:
@@ -22,7 +24,7 @@ class Core:
         self.__gadgets = self.__passClean(self.__gadgets)
         # print
         if self.__options.op:
-            gadgets = self.__searchOperation(self.__options.op, self.__options.reg_src, self.__options.reg_dst)
+            gadgets = self.__searchOperation(binary, self.__options.op, self.__options.reg_src, self.__options.reg_dst)
             gadgets = self.__deleteDuplicateGadgets(gadgets)
             self.__printGadgets(gadgets)
         else:
@@ -72,28 +74,49 @@ class Core:
                             ret += [{"vaddr": vaddr + ref - depth, "gadget": gadget, "bytes": section[ref - depth:ref + gad[C_SIZE]]}]
         return ret
 
-    def __searchOperation(self, op, src, dst):
-        __re = "[a-zA-Z0-9\+\-\[\] ]*"
-        if not src:
-            src = __re
-        if not dst:
-            dst = __re
+    def __searchOperation(self, binary, op, src, dst):
+        arch = binary.getArch()
+        mode = binary.getArchMode()
+        md = Cs(arch, mode)
+        md.detail = True
+
         parser = Parser(op)
         operation = parser.parse()
-        operation.setDst(dst)
-        operation.setSrc(src)
-        sets = operation.getSets()
         ret = []
         # TODO generate ropchains that constitutes an operation
-        for s in sets:
-            toSearch = str(s)
-            print(toSearch)
+        if (src is None) or (dst is None):
+            sets = operation.getSets()
             for gadget in self.__gadgets:
-                gad = gadget["gadget"]
-                searched = re.match(toSearch, gad)
-                if searched:
-                    ret += [{"vaddr": gadget["vaddr"], "gadget": gadget["gadget"], "bytes": gadget["bytes"]}]
+                for s in sets:
+                    decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
+                    for decode, ins in zip(decodes, s.getInstructions()):
+                        if not ins.getMnemonic() == decode.mnemonic:
+                            break
+                    else:
+                        ret += [gadget]
+        else:
+            operation.setDst(dst)
+            operation.setSrc(src)
+            sets = operation.getSets()
+            for s in sets:
+                toSearch = str(s)
+                for gadget in self.__gadgets:
+                    gad = gadget["gadget"]
+                    searched = re.match(toSearch, gad)
+                    if searched:
+                        ret += [gadget]
         return ret
+
+    def __getRegister(self, decode, position):
+        reg = None
+        if position < len(decode.operands):
+            i = decode.operands[position]
+            if i.type == X86_OP_REG:
+                reg = decode.reg_name(i.reg)
+            if i.type == X86_OP_MEM:
+                if i.mem.base != 0:
+                    reg = decode.reg_name(i.mem.base)
+        return reg
 
     def __printGadgets(self, gadgets):
         print("Gadgets information")

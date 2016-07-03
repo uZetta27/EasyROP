@@ -4,21 +4,23 @@ class Operation:
         self.__sets = []
 
     def setDst(self, dst):
-        for set in self.__sets:
-            set.setDst(dst)
+        if dst is not None:
+            for s in self.__sets:
+                s.setDst(dst)
 
     def setSrc(self, src):
-        for set in self.__sets:
-            set.setSrc(src)
+        if src is not None:
+            for s in self.__sets:
+                s.setSrc(src)
 
-    def addSet(self, set):
-        self.__sets.append(set)
+    def addSet(self, s):
+        self.__sets.append(s)
 
     def getSets(self):
         return self.__sets
 
     def __str__(self):
         string = ''
-        for set in self.__sets:
-            string += str(set) + '\n'
+        for s in self.__sets:
+            string += str(s) + '\n'
         return string

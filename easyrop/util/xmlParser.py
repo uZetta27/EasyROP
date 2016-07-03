@@ -19,7 +19,15 @@ class XmlParser:
                 for set in operation.iter('set'):
                     s = Set()
                     for ins in set.iter('ins'):
-                        i = Instruction(ins.get('mnemonic'), ins.find('reg1'), ins.find('reg2'))
+                        reg1 = ins.find('reg1')
+                        reg1_name = ''
+                        reg2 = ins.find('reg2')
+                        reg2_name = ''
+                        if reg1 is not None:
+                            reg1_name = reg1.text
+                        if reg2 is not None:
+                            reg2_name = reg2.text
+                        i = Instruction(ins.get('mnemonic'), reg1_name, reg2_name)
                         s.addIntruction(i)
                     __operation.addSet(s)
         return __operation

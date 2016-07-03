@@ -1,5 +1,4 @@
 import re
-import copy
 
 from easyrop.binary import Binary
 from easyrop.util.parser import Parser
@@ -88,12 +87,29 @@ class Core:
             sets = operation.getSets()
             for gadget in self.__gadgets:
                 for s in sets:
+                    _dst = dst
+                    _src = src
                     decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
+                    auxSet = copy.deepcopy(s)
                     for decode, ins in zip(decodes, s.getInstructions()):
-                        if not ins.getMnemonic() == decode.mnemonic:
+                        if not decode.mnemonic == ins.getMnemonic():
                             break
+                        if len(decode.operands) > 0:
+                            if _dst is None and ins.getReg1() == 'dst':
+                                _dst = self.__getRegister(decode, 0)
+                            elif _dst is None and ins.getReg2() == 'dst':
+                                _dst = self.__getRegister(decode, 1)
+                            if _src and ins.getReg1() == 'src':
+                                _src = self.__getRegister(decode, 0)
+                            elif _src is None and ins.getReg2() == 'src':
+                                _src = self.__getRegister(decode, 1)
+                            auxSet.setSrc(_src)
+                            auxSet.setDst(_dst)
                     else:
-                        ret += [gadget]
+                        toSearch = str(auxSet)
+                        searched = re.match(toSearch, gadget["gadget"])
+                        if searched:
+                            ret += [gadget]
         else:
             operation.setDst(dst)
             operation.setSrc(src)

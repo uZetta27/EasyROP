@@ -77,23 +77,21 @@ class Core:
         return ret
 
     def __searchOperation(self, binary, op, src, dst):
-        arch = binary.getArch()
-        mode = binary.getArchMode()
-        md = Cs(arch, mode)
-        md.detail = True
-
         parser = Parser(op)
-        operation = parser.parse()
         ret = []
         # TODO generate ropchains that constitutes an operation
         if not (src and dst):
-            sets = operation.getSets()
+            arch = binary.getArch()
+            mode = binary.getArchMode()
+            md = Cs(arch, mode)
+            md.detail = True
             for gadget in self.__gadgets:
+                operation = parser.parse()
+                sets = operation.getSets()
                 for s in sets:
                     _dst = dst
                     _src = src
                     decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
-                    auxSet = copy.deepcopy(s)
                     for decode, ins in zip(decodes, s.getInstructions()):
                         if decode.mnemonic == ins.getMnemonic():
                             if len(decode.operands) > 0:
@@ -107,21 +105,17 @@ class Core:
                                         _src = self.__getRegister(decode, 0)
                                     elif ins.getReg2() == 'src':
                                         _src = self.__getRegister(decode, 1)
-                                if _src or _dst:
-                                    if _dst:
-                                        auxSet.setDst(_dst)
-                                    if _src:
-                                        auxSet.setSrc(_src)
-                                else:
-                                    break
                         else:
                             break
                     else:
-                        toSearch = str(auxSet)
+                        s.setDst(_dst)
+                        s.setSrc(_src)
+                        toSearch = str(s)
                         searched = re.match(toSearch, gadget["gadget"])
                         if searched:
                             ret += [gadget]
         else:
+            operation = parser.parse()
             operation.setDst(dst)
             operation.setSrc(src)
             sets = operation.getSets()

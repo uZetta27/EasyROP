@@ -4,12 +4,12 @@ class Operation:
         self.__sets = []
 
     def setDst(self, dst):
-        if dst is not None:
+        if dst:
             for s in self.__sets:
                 s.setDst(dst)
 
     def setSrc(self, src):
-        if src is not None:
+        if src:
             for s in self.__sets:
                 s.setSrc(src)
 

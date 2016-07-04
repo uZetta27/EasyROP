@@ -26,4 +26,11 @@ class Instruction:
         return self.__mnemonic
 
     def __str__(self):
-        return (str(self.__mnemonic) + ' ' + str(self.__reg1) + ', ' + str(self.__reg2)).replace(' , ', ' ')
+        string = ''
+        if len(self.__reg1) != 0 and len(self.__reg2) != 0:
+            string = str(self.__mnemonic) + ' ' + str(self.__reg1) + ', ' + str(self.__reg2)
+        elif len(self.__reg1) != 0 and len(self.__reg2) == 0:
+            string = str(self.__mnemonic) + ' ' + str(self.__reg1)
+        elif len(self.__reg1) == 0:
+            string = str(self.__mnemonic)
+        return string

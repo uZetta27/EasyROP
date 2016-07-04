@@ -3,12 +3,12 @@ class Set:
         self.__instructions = []
 
     def setDst(self, dst):
-        if dst is not None:
+        if dst:
             for ins in self.__instructions:
                 ins.setDst(dst)
 
     def setSrc(self, src):
-        if src is not None:
+        if src:
             for ins in self.__instructions:
                 ins.setSrc(src)
 
@@ -23,4 +23,5 @@ class Set:
         for instruction in self.__instructions:
             string += str(instruction) + " ; "
         string = string.replace('  ', ' ').replace(', ;', ' ;')
+
         return string

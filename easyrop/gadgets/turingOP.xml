@@ -145,7 +145,7 @@
         </set>
         <set>
             <ins mnemonic="push">
-                <reg2>src</reg2>
+                <reg1>src</reg1>
             </ins>
             <ins mnemonic="pop">
                 <reg1>dst</reg1>

@@ -1,5 +1,5 @@
 import re
-
+import datetime
 from easyrop.binary import Binary
 from easyrop.util.parser import Parser
 
@@ -13,6 +13,7 @@ class Core:
         self.__gadgets = []
 
     def analyze(self):
+        start = datetime.datetime.now()
         binary = Binary(self.__options)
         # search for gadgets
         self.__gadgets += self.addROPGadgets(binary)
@@ -28,6 +29,8 @@ class Core:
             self.__printGadgets(gadgets)
         else:
             self.__printGadgets(self.__gadgets)
+        end = datetime.datetime.now() - start
+        print('\nTime elapsed: %s' % str(end))
 
     def addROPGadgets(self, binary):
         gadgets = [
@@ -83,7 +86,7 @@ class Core:
         operation = parser.parse()
         ret = []
         # TODO generate ropchains that constitutes an operation
-        if (src is None) or (dst is None):
+        if not (src and dst):
             sets = operation.getSets()
             for gadget in self.__gadgets:
                 for s in sets:
@@ -92,19 +95,27 @@ class Core:
                     decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
                     auxSet = copy.deepcopy(s)
                     for decode, ins in zip(decodes, s.getInstructions()):
-                        if not decode.mnemonic == ins.getMnemonic():
+                        if decode.mnemonic == ins.getMnemonic():
+                            if len(decode.operands) > 0:
+                                if not _dst:
+                                    if ins.getReg1() == 'dst':
+                                        _dst = self.__getRegister(decode, 0)
+                                    elif ins.getReg2() == 'dst':
+                                        _dst = self.__getRegister(decode, 1)
+                                if not _src:
+                                    if ins.getReg1() == 'src':
+                                        _src = self.__getRegister(decode, 0)
+                                    elif ins.getReg2() == 'src':
+                                        _src = self.__getRegister(decode, 1)
+                                if _src or _dst:
+                                    if _dst:
+                                        auxSet.setDst(_dst)
+                                    if _src:
+                                        auxSet.setSrc(_src)
+                                else:
+                                    break
+                        else:
                             break
-                        if len(decode.operands) > 0:
-                            if _dst is None and ins.getReg1() == 'dst':
-                                _dst = self.__getRegister(decode, 0)
-                            elif _dst is None and ins.getReg2() == 'dst':
-                                _dst = self.__getRegister(decode, 1)
-                            if _src and ins.getReg1() == 'src':
-                                _src = self.__getRegister(decode, 0)
-                            elif _src is None and ins.getReg2() == 'src':
-                                _src = self.__getRegister(decode, 1)
-                            auxSet.setSrc(_src)
-                            auxSet.setDst(_dst)
                     else:
                         toSearch = str(auxSet)
                         searched = re.match(toSearch, gadget["gadget"])

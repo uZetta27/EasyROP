@@ -21,6 +21,7 @@ class Args:
         parser.add_argument("--op", type=str, metavar="<op>", help="Search for operation: [lc, move, load, store, add, sub, xor, not, and, or, cond]")
         parser.add_argument("--reg-src", type=str, metavar="<reg>", help="Specify a source reg to operation")
         parser.add_argument("--reg-dst", type=str, metavar="<reg>", help="Specify a destination reg to operation")
+        parser.add_argument("--ropchain", action="store_true", help="Enables ropchain generation to search for operation")
 
         self.__args = parser.parse_args(arguments)
         self.__check_args()
@@ -48,6 +49,9 @@ class Args:
 
         elif not self.__args.op and (self.__args.reg_src or self.__args.reg_dst):
             print("[Error] reg specified without an opcode (--help)")
+            sys.exit(-1)
+        elif not self.__args.op and self.__args.ropchain:
+            print("[Error] ropchain generation without an opcode (--help)")
             sys.exit(-1)
 
     def __print_version(self):

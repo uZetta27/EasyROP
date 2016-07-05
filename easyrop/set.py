@@ -22,6 +22,9 @@ class Set:
         string = ''
         for instruction in self.__instructions:
             string += str(instruction) + " ; "
-        string = string.replace('  ', ' ').replace(', ;', ' ;')
+        string = string.replace('  ', ' ')
 
         return string
+
+    def __len__(self):
+        return len(self.__instructions)

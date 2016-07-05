@@ -1,5 +1,6 @@
 import re
 import datetime
+
 from easyrop.binary import Binary
 from easyrop.util.parser import Parser
 
@@ -24,12 +25,16 @@ class Core:
         self.__gadgets = self.__passClean(self.__gadgets)
         # print
         if self.__options.op:
-            gadgets = self.__searchOperation(binary, self.__options.op, self.__options.reg_src, self.__options.reg_dst)
-            gadgets = self.__deleteDuplicateGadgets(gadgets)
-            self.__printGadgets(gadgets)
+            if self.__options.ropchain:
+                ropchains = self.__searchRopchains(binary, self.__options.op, self.__options.reg_src, self.__options.reg_dst)
+                self.__printRopchains(ropchains)
+            else:
+                gadgets = self.__searchOperation(binary, self.__options.op, self.__options.reg_src, self.__options.reg_dst)
+                self.__printGadgets(gadgets)
         else:
             self.__printGadgets(self.__gadgets)
         end = datetime.datetime.now() - start
+        # print time
         print('\nTime elapsed: %s' % str(end))
 
     def addROPGadgets(self, binary):
@@ -79,7 +84,6 @@ class Core:
     def __searchOperation(self, binary, op, src, dst):
         parser = Parser(op)
         ret = []
-        # TODO generate ropchains that constitutes an operation
         if not (src and dst):
             arch = binary.getArch()
             mode = binary.getArchMode()
@@ -128,6 +132,31 @@ class Core:
                         ret += [gadget]
         return ret
 
+    def __searchRopchains(self, binary, op, src, dst):
+        parser = Parser(op)
+        ret = []
+        if not (src and dst):
+            print('Not supported: src and dst needed')
+        else:
+            operation = parser.parse()
+            operation.setDst(dst)
+            operation.setSrc(src)
+            sets = operation.getSets()
+            for s in sets:
+                chain = []
+                if len(s) > 1:
+                    for ins in s.getInstructions():
+                        for gadget in self.__gadgets:
+                            toSearch = str(ins)
+                            gad = gadget["gadget"]
+                            searched = re.match(toSearch, gad)
+                            if searched and gadget not in chain:
+                                chain += [gadget]
+                                break
+                        if len(s) == len(chain):
+                            ret += [chain]
+        return ret
+
     def __getRegister(self, decode, position):
         reg = None
         if position < len(decode.operands):
@@ -146,6 +175,15 @@ class Core:
         for gad in gadgets:
             print("0x%x : %s" % (gad["vaddr"], gad["gadget"]))
         print("\nGadgets found: %d" % len(gadgets))
+
+    def __printRopchains(self, ropchains):
+        print("ROPchains information")
+        print("============================================================")
+        for chain in ropchains:
+            for gad in chain:
+                print("0x%x : %s" % (gad["vaddr"], gad["gadget"]))
+            print('-----------------------------------------')
+        print("\nROPchains found: %d" % len(ropchains))
 
     def __deleteDuplicateGadgets(self, gadgets):
         gadgets_content_set = set()

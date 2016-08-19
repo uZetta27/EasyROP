@@ -15,7 +15,7 @@ class Set:
     def setAux(self, aux):
         if aux:
             for ins in self.__instructions:
-                ins.setSrc(aux)
+                ins.setAux(aux)
 
     def needAux(self):
         needed = False

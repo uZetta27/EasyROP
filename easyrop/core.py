@@ -88,9 +88,9 @@ class Core:
     def __searchOperation(self, binary, op, src, dst):
         parser = Parser(op)
         ret = []
+        arch = binary.getArch()
+        mode = binary.getArchMode()
         if not (src and dst):
-            arch = binary.getArch()
-            mode = binary.getArchMode()
             md = Cs(arch, mode)
             md.detail = True
             for gadget in self.__gadgets:
@@ -127,30 +127,29 @@ class Core:
             operation.setDst(dst)
             operation.setSrc(src)
             sets = operation.getSets()
-            arch = binary.getArch()
-            mode = binary.getArchMode()
             md = Cs(arch, mode)
             md.detail = True
             for s in sets:
                 if s.needAux():
-                    _aux = None
-                    decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
-                    for decode, ins in zip(decodes, s.getInstructions()):
-                        if decode.mnemonic == ins.getMnemonic():
-                            if len(decode.operands) > 0:
-                                if not _aux:
-                                    if ins.isReg1Aux():
-                                        _aux = self.__getRegister(decode, 0)
-                                    elif ins.isReg2Aux():
-                                        _aux = self.__getRegister(decode, 1)
+                    for gadget in self.__gadgets:
+                        _aux = None
+                        decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
+                        for decode, ins in zip(decodes, s.getInstructions()):
+                            if decode.mnemonic == ins.getMnemonic():
+                                if len(decode.operands) > 0:
+                                    if not _aux:
+                                        if ins.isReg1Aux():
+                                            _aux = self.__getRegister(decode, 0)
+                                        elif ins.isReg2Aux():
+                                            _aux = self.__getRegister(decode, 1)
+                            else:
+                                break
                         else:
-                            break
-                    else:
-                        s.setAux(_aux)
-                        toSearch = str(s)
-                        searched = re.match(toSearch, gadget["gadget"])
-                        if searched:
-                            ret += [gadget]
+                            s.setAux(_aux)
+                            toSearch = str(s)
+                            searched = re.match(toSearch, gadget["gadget"])
+                            if searched:
+                                ret += [gadget]
                 else:
                     toSearch = str(s)
                     for gadget in self.__gadgets:

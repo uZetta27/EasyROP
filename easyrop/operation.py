@@ -13,6 +13,11 @@ class Operation:
             for s in self.__sets:
                 s.setSrc(src)
 
+    def setAux(self, aux):
+        if aux:
+            for s in self.__sets:
+                s.setAux(aux)
+
     def addSet(self, s):
         self.__sets.append(s)
 

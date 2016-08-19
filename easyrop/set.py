@@ -12,6 +12,19 @@ class Set:
             for ins in self.__instructions:
                 ins.setSrc(src)
 
+    def setAux(self, aux):
+        if aux:
+            for ins in self.__instructions:
+                ins.setSrc(aux)
+
+    def needAux(self):
+        needed = False
+        i = 0
+        while (i < len(self.__instructions)) and not needed:
+            needed = self.__instructions[i].needAux()
+            i += 1
+        return needed
+
     def addIntruction(self, instruction):
         self.__instructions.append(instruction)
 

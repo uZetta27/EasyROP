@@ -104,14 +104,14 @@ class Core:
                         if decode.mnemonic == ins.getMnemonic():
                             if len(decode.operands) > 0:
                                 if not _dst:
-                                    if ins.getReg1() == 'dst':
+                                    if ins.isReg1Dst():
                                         _dst = self.__getRegister(decode, 0)
-                                    elif ins.getReg2() == 'dst':
+                                    elif ins.isReg2Dst():
                                         _dst = self.__getRegister(decode, 1)
                                 if not _src:
-                                    if ins.getReg1() == 'src':
+                                    if ins.isReg1Src():
                                         _src = self.__getRegister(decode, 0)
-                                    elif ins.getReg2() == 'src':
+                                    elif ins.isReg2Src():
                                         _src = self.__getRegister(decode, 1)
                         else:
                             break
@@ -127,13 +127,37 @@ class Core:
             operation.setDst(dst)
             operation.setSrc(src)
             sets = operation.getSets()
+            arch = binary.getArch()
+            mode = binary.getArchMode()
+            md = Cs(arch, mode)
+            md.detail = True
             for s in sets:
-                toSearch = str(s)
-                for gadget in self.__gadgets:
-                    gad = gadget["gadget"]
-                    searched = re.match(toSearch, gad)
-                    if searched:
-                        ret += [gadget]
+                if s.needAux():
+                    _aux = None
+                    decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
+                    for decode, ins in zip(decodes, s.getInstructions()):
+                        if decode.mnemonic == ins.getMnemonic():
+                            if len(decode.operands) > 0:
+                                if not _aux:
+                                    if ins.isReg1Aux():
+                                        _aux = self.__getRegister(decode, 0)
+                                    elif ins.isReg2Aux():
+                                        _aux = self.__getRegister(decode, 1)
+                        else:
+                            break
+                    else:
+                        s.setAux(_aux)
+                        toSearch = str(s)
+                        searched = re.match(toSearch, gadget["gadget"])
+                        if searched:
+                            ret += [gadget]
+                else:
+                    toSearch = str(s)
+                    for gadget in self.__gadgets:
+                        gad = gadget["gadget"]
+                        searched = re.match(toSearch, gad)
+                        if searched:
+                            ret += [gadget]
         return ret
 
     def __searchRopchains(self, binary, op, src, dst):

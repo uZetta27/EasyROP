@@ -22,6 +22,8 @@ class Args:
         parser.add_argument("--reg-src", type=str, metavar="<reg>", help="Specify a source reg to operation")
         parser.add_argument("--reg-dst", type=str, metavar="<reg>", help="Specify a destination reg to operation")
         parser.add_argument("--ropchain", action="store_true", help="Enables ropchain generation to search for operation")
+        parser.add_argument("--noretf", action="store_true", help="Disables gadgets terminated in a far return (retf)")
+        parser.add_argument("--nojop", action="store_true", help="Disables JOP gadgets")
 
         self.__args = parser.parse_args(arguments)
         self.__check_args()
@@ -56,7 +58,7 @@ class Args:
 
     def __print_version(self):
         print("Version: %s" % EASYROP_VERSION)
-        print("Author: Daniel Uroz (based in Jonathan Salwan's ROPgadget)")
+        print("Author: Daniel Uroz")
 
     def get_args(self):
         return self.__args

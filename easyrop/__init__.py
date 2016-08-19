@@ -1,5 +1,5 @@
 import easyrop.args
-import easyrop.binary
+import easyrop.binaries.binary
 import easyrop.core
 
 

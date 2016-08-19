@@ -1,4 +1,4 @@
-from easyrop.util.xmlParser import XmlParser
+from easyrop.parsers.xmlParser import XmlParser
 
 
 class Parser:

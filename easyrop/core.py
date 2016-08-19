@@ -1,11 +1,11 @@
-import re
 import datetime
-
-from easyrop.binary import Binary
-from easyrop.util.parser import Parser
+import re
 
 from capstone import *
 from capstone.x86 import *
+
+from easyrop.binaries.binary import Binary
+from easyrop.parsers.parser import Parser
 
 
 class Core:
@@ -18,7 +18,8 @@ class Core:
         binary = Binary(self.__options)
         # search for gadgets
         self.__gadgets += self.addROPGadgets(binary)
-        self.__gadgets += self.addJOPGadgets(binary)
+        if not self.__options.nojop:
+            self.__gadgets += self.addJOPGadgets(binary)
         # apply some options
         if not self.__options.all:
             self.__gadgets = self.__deleteDuplicateGadgets(self.__gadgets)
@@ -39,11 +40,14 @@ class Core:
 
     def addROPGadgets(self, binary):
         gadgets = [
-            [b"\xc3", 1],                # ret
-            [b"\xc2[\x00-\xff]{2}", 3],  # ret <imm>
-            [b"\xcb", 1],                # retf
-            [b"\xca[\x00-\xff]{2}", 3]   # retf <imm>
+            [b"\xc3", 1],               # ret
+            [b"\xc2[\x00-\xff]{2}", 3]  # ret <imm>
         ]
+        if not self.__options.noretf:
+            gadgets += [
+                [b"\xcb", 1],                # retf
+                [b"\xca[\x00-\xff]{2}", 3]   # retf <imm>
+            ]
 
         return self.__searchGadgets(binary, gadgets)
 
@@ -201,7 +205,11 @@ class Core:
 
     def __passClean(self, gadgets):
         new = []
-        br = ["ret", "retf", "jmp", "call"]
+        br = ["ret"]
+        if not self.__options.noretf:
+            br += ["retf"]
+        if not self.__options.nojop:
+            br += ["jmp", "call"]
         for gadget in gadgets:
             insts = gadget["gadget"].split(" ; ")
             if len(insts) == 1 and insts[0].split(" ")[0] not in br:

@@ -1,4 +1,4 @@
-from easyrop.pe import Pe
+from easyrop.binaries.pe import Pe
 
 
 class Binary:

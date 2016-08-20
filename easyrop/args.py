@@ -27,14 +27,6 @@ class Args:
 
         self.__args = parser.parse_args(arguments)
         self.__check_args()
-        self.__do_opcodes()
-
-    def __do_opcodes(self):
-        op = self.__args.op
-        if op and not (op == "lc" or op == "move" or op == "load" or op == "store" or op == "xor" or op == "not" or op == "add"
-                or op == "sub" or op == "and" or op == "or" or op == "cond"):
-            print("[Error] Unsupported operation. op must to be: [lc, move, load, store, add, sub, xor, not, and, or, cond]")
-            sys.exit(-1)
 
     def __check_args(self):
         if self.__args.version:

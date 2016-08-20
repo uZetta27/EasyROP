@@ -99,10 +99,16 @@ class Core:
                 for s in sets:
                     _dst = dst
                     _src = src
+                    _aux = None
                     decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
                     for decode, ins in zip(decodes, s.getInstructions()):
                         if decode.mnemonic == ins.getMnemonic():
                             if len(decode.operands) > 0:
+                                if not _aux:
+                                    if ins.isReg1Aux():
+                                        _aux = self.__getRegister(decode, 0)
+                                    elif ins.isReg2Aux():
+                                        _aux = self.__getRegister(decode, 1)
                                 if not _dst:
                                     if ins.isReg1Dst():
                                         _dst = self.__getRegister(decode, 0)
@@ -118,6 +124,7 @@ class Core:
                     else:
                         s.setDst(_dst)
                         s.setSrc(_src)
+                        s.setAux(_aux)
                         toSearch = str(s)
                         searched = re.match(toSearch, gadget["gadget"])
                         if searched:

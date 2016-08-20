@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE operations [
+        <!ELEMENT operations (operation)+>
+        <!ELEMENT operation (set)+>
+        <!ATTLIST operation
+                name CDATA #REQUIRED>
+        <!ELEMENT set (ins)+>
+        <!ELEMENT ins (reg1|reg2)*>
+        <!ATTLIST ins
+                mnemonic CDATA #REQUIRED>
+        <!ELEMENT reg1 (#PCDATA)>
+        <!ATTLIST reg1
+                value CDATA #IMPLIED>
+        <!ELEMENT reg2 (#PCDATA)>
+        ]>
+<operations>
+     <operation name="neg">
+         <set>
+            <ins mnemonic="neg">
+                <reg1>dst</reg1>
+            </ins>
+         </set>
+    </operation>
+</operations>

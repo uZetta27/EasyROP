@@ -152,8 +152,10 @@ class Core:
                             else:
                                 break
                         else:
-                            s.setAux(_aux)
-                            toSearch = str(s)
+                            saux = copy.deepcopy(s)
+                            saux.setAux(_aux)
+                            toSearch = str(saux)
+                            print(toSearch)
                             searched = re.match(toSearch, gadget["gadget"])
                             if searched:
                                 ret += [gadget]
@@ -167,7 +169,7 @@ class Core:
         return ret
 
     def __searchRopchains(self, binary, op, src, dst):
-        parser = Parser(op)
+        parser = Parser()
         ret = []
         if not (src and dst):
             print('Not supported: src and dst needed')

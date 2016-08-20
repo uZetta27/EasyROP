@@ -1,11 +1,14 @@
 import xml.etree.ElementTree
 import os
 
+from os import listdir
+from os.path import isfile, join
+
 from easyrop.operation import Operation
 from easyrop.set import Set
 from easyrop.instruction import Instruction
 
-TURING_XML = '\easyrop\gadgets\\turingOP.xml'
+GADGET_DIRECTORY ='\easyrop\gadgets'
 
 OPERATION = 'operation'
 NAME = 'name'
@@ -15,11 +18,32 @@ REGISTER_1 = 'reg1'
 REGISTER_2 = 'reg2'
 MNEMONIC = 'mnemonic'
 
+
 class XmlParser:
+    def __getAllFiles(self):
+        return [f for f in listdir(os.getcwd() + GADGET_DIRECTORY) if isfile(join(os.getcwd() + GADGET_DIRECTORY, f))]
+
     def __init__(self, op):
-        path = os.getcwd() + TURING_XML
-        self.__file = xml.etree.ElementTree.parse(path).getroot()
         self.__op = op
+        self.__files = self.__getAllFiles()
+        found = False
+        i = 0
+        while i < len(self.__files) and not found:
+            path = os.getcwd() + GADGET_DIRECTORY + '\\' + self.__files[i]
+            self.__file = xml.etree.ElementTree.parse(path).getroot()
+            for operation in self.__file.findall(OPERATION):
+                if op == operation.get(NAME):
+                    found = True
+            i += 1
+
+    def getAllOps(self):
+        ops = []
+        for file in self.__files:
+            path = os.getcwd() + GADGET_DIRECTORY + '\\' + file
+            f = xml.etree.ElementTree.parse(path).getroot()
+            for operation in f.findall(OPERATION):
+                ops += [operation.get(NAME)]
+        return ops
 
     def parse(self):
         __operation = Operation(self.__op)

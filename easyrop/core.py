@@ -169,7 +169,7 @@ class Core:
         return ret
 
     def __searchRopchains(self, binary, op, src, dst):
-        parser = Parser()
+        parser = Parser(op)
         ret = []
         if not (src and dst):
             print('Not supported: src and dst needed')
@@ -186,7 +186,7 @@ class Core:
                             toSearch = str(ins)
                             gad = gadget["gadget"]
                             searched = re.match(toSearch, gad)
-                            if searched and gadget not in chain:
+                            if searched:
                                 chain += [gadget]
                                 break
                         if len(s) == len(chain):

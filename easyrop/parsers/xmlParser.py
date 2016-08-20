@@ -8,7 +8,7 @@ from easyrop.operation import Operation
 from easyrop.set import Set
 from easyrop.instruction import Instruction
 
-GADGET_DIRECTORY ='\easyrop\gadgets'
+GADGET_DIRECTORY = '\easyrop\gadgets'
 
 OPERATION = 'operation'
 NAME = 'name'

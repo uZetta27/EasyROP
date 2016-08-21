@@ -18,8 +18,13 @@ class Operation:
             for s in self.__sets:
                 s.setAux(aux)
 
+    def setAddress(self, address):
+        if address:
+            for s in self.__sets:
+                s.setAddress(address)
+
     def addSet(self, s):
-        self.__sets.append(s)
+        self.__sets += [s]
 
     def getSets(self):
         return self.__sets

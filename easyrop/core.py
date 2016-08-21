@@ -90,7 +90,43 @@ class Core:
         ret = []
         arch = binary.getArch()
         mode = binary.getArchMode()
-        if not (src and dst):
+        if src and dst:
+            operation = parser.parse()
+            operation.setDst(dst)
+            operation.setSrc(src)
+            sets = operation.getSets()
+            md = Cs(arch, mode)
+            md.detail = True
+            for s in sets:
+                if s.needAux():
+                    for gadget in self.__gadgets:
+                        _aux = None
+                        decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
+                        for decode, ins in zip(decodes, s.getInstructions()):
+                            if decode.mnemonic == ins.getMnemonic():
+                                if len(decode.operands) > 0:
+                                    if not _aux:
+                                        if ins.isReg1Aux():
+                                            _aux = self.__getRegister(decode, 0)
+                                        elif ins.isReg2Aux():
+                                            _aux = self.__getRegister(decode, 1)
+                            else:
+                                break
+                        else:
+                            saux = copy.deepcopy(s)
+                            saux.setAux(_aux)
+                            toSearch = str(saux)
+                            searched = re.match(toSearch, gadget["gadget"])
+                            if searched:
+                                ret += [gadget]
+                else:
+                    toSearch = str(s)
+                    for gadget in self.__gadgets:
+                        gad = gadget["gadget"]
+                        searched = re.match(toSearch, gad)
+                        if searched:
+                            ret += [gadget]
+        else:
             md = Cs(arch, mode)
             md.detail = True
             for gadget in self.__gadgets:
@@ -127,43 +163,6 @@ class Core:
                         s.setAux(_aux)
                         toSearch = str(s)
                         searched = re.match(toSearch, gadget["gadget"])
-                        if searched:
-                            ret += [gadget]
-        else:
-            operation = parser.parse()
-            operation.setDst(dst)
-            operation.setSrc(src)
-            sets = operation.getSets()
-            md = Cs(arch, mode)
-            md.detail = True
-            for s in sets:
-                if s.needAux():
-                    for gadget in self.__gadgets:
-                        _aux = None
-                        decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
-                        for decode, ins in zip(decodes, s.getInstructions()):
-                            if decode.mnemonic == ins.getMnemonic():
-                                if len(decode.operands) > 0:
-                                    if not _aux:
-                                        if ins.isReg1Aux():
-                                            _aux = self.__getRegister(decode, 0)
-                                        elif ins.isReg2Aux():
-                                            _aux = self.__getRegister(decode, 1)
-                            else:
-                                break
-                        else:
-                            saux = copy.deepcopy(s)
-                            saux.setAux(_aux)
-                            toSearch = str(saux)
-                            print(toSearch)
-                            searched = re.match(toSearch, gadget["gadget"])
-                            if searched:
-                                ret += [gadget]
-                else:
-                    toSearch = str(s)
-                    for gadget in self.__gadgets:
-                        gad = gadget["gadget"]
-                        searched = re.match(toSearch, gad)
                         if searched:
                             ret += [gadget]
         return ret

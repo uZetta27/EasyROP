@@ -1,6 +1,7 @@
 DESTINATION = 'dst'
 SOURCE = 'src'
 AUXILIARY = 'aux'
+ADDRESS = 'address'
 
 class Instruction:
     def __init__(self, mnemonic, reg1, reg2):
@@ -26,8 +27,17 @@ class Instruction:
         if self.__reg2 == AUXILIARY:
             self.__reg2 = aux
 
+    def setAddress(self, address):
+        if self.__reg1 == ADDRESS:
+            self.__reg1 = address
+        if self.__reg2 == ADDRESS:
+            self.__reg2 = address
+
     def needAux(self):
         return (self.__reg1 or self.__reg2) == AUXILIARY
+
+    def needAdress(self):
+        return (self.__reg1 or self.__reg2) == ADDRESS
 
     def isReg1Dst(self):
         return self.__reg1 == DESTINATION
@@ -47,11 +57,11 @@ class Instruction:
     def isReg2Aux(self):
         return self.__reg2 == AUXILIARY
 
-    def getReg1(self):
-        return self.__reg1
+    def isReg1Address(self):
+        return self.__reg1 == ADDRESS
 
-    def getReg2(self):
-        return self.__reg2
+    def isReg2Address(self):
+        return self.__reg2 == ADDRESS
 
     def getMnemonic(self):
         return self.__mnemonic

@@ -17,6 +17,11 @@ class Set:
             for ins in self.__instructions:
                 ins.setAux(aux)
 
+    def setAddress(self, address):
+        if address:
+            for ins in self.__instructions:
+                ins.setAux(address)
+
     def needAux(self):
         needed = False
         i = 0
@@ -25,8 +30,16 @@ class Set:
             i += 1
         return needed
 
+    def needAddress(self):
+        needed = False
+        i = 0
+        while (i < len(self.__instructions)) and not needed:
+            needed = self.__instructions[i].needAddress()
+            i += 1
+        return needed
+
     def addIntruction(self, instruction):
-        self.__instructions.append(instruction)
+        self.__instructions += [instruction]
 
     def getInstructions(self):
         return self.__instructions

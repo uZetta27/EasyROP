@@ -34,9 +34,9 @@ class Args:
 
     def __do_opcodes(self):
         ops = self.__p.getAllOps()
-        if self.__args.op not in ops:
+        if self.__args.op and (self.__args.op not in ops):
             ops_string = ", ".join(ops)
-            print("[Error] op need must be: %s" % ops_string)
+            print("[Error] op must be: %s" % ops_string)
             sys.exit(-1)
 
     def __check_args(self):

@@ -1,22 +1,23 @@
 from pefile import *
 from capstone import *
 
+
 class Pe:
-    def __init__(self, fileName):
-        self.__fileName = fileName
+    def __init__(self, file_name):
+        self.__file_name = file_name
         self.__pe = None
         self.__archMode = None
         self.__arch = None
 
         try:
-            self.__pe = PE(fileName)
+            self.__pe = PE(file_name)
         except:
             print("[Error] Can't open the binary or binary not found")
             return None
 
-        self.__parseArch()
+        self.parse_arch()
 
-    def __parseArch(self):
+    def parse_arch(self):
         if hex(self.__pe.FILE_HEADER.Machine) == '0x14c':
             self.__archMode = CS_MODE_32
             self.__arch = CS_ARCH_X86
@@ -24,20 +25,20 @@ class Pe:
             self.__archMode = CS_MODE_64
             self.__arch = CS_ARCH_X86
 
-    def getFileName(self):
-        return self.__fileName
+    def get_file_name(self):
+        return self.__file_name
 
-    def getBinary(self):
+    def get_binary(self):
         return self.__pe
 
-    def getEntryPoint(self):
+    def get_entry_point(self):
         return self.__pe.OPTIONAL_HEADER.ImageBase + self.__pe.OPTIONAL_HEADER.BaseOfCode
 
-    def getExecSections(self):
+    def get_exec_sections(self):
         return self.__pe.sections[0].get_data()
 
-    def getArch(self):
+    def get_arch(self):
         return self.__arch
 
-    def getArchMode(self):
+    def get_arch_mode(self):
         return self.__archMode

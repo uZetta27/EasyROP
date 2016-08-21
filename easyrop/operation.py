@@ -3,30 +3,30 @@ class Operation:
         self.__name = name
         self.__sets = []
 
-    def setDst(self, dst):
+    def set_dst(self, dst):
         if dst:
             for s in self.__sets:
-                s.setDst(dst)
+                s.set_dst(dst)
 
-    def setSrc(self, src):
+    def set_src(self, src):
         if src:
             for s in self.__sets:
-                s.setSrc(src)
+                s.set_src(src)
 
-    def setAux(self, aux):
+    def set_aux(self, aux):
         if aux:
             for s in self.__sets:
-                s.setAux(aux)
+                s.set_aux(aux)
 
-    def setAddress(self, address):
+    def set_address(self, address):
         if address:
             for s in self.__sets:
-                s.setAddress(address)
+                s.set_address(address)
 
-    def addSet(self, s):
+    def add_set(self, s):
         self.__sets += [s]
 
-    def getSets(self):
+    def get_sets(self):
         return self.__sets
 
     def __str__(self):

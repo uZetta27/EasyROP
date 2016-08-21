@@ -2,46 +2,46 @@ class Set:
     def __init__(self):
         self.__instructions = []
 
-    def setDst(self, dst):
+    def set_dst(self, dst):
         if dst:
             for ins in self.__instructions:
-                ins.setDst(dst)
+                ins.set_dst(dst)
 
-    def setSrc(self, src):
+    def set_src(self, src):
         if src:
             for ins in self.__instructions:
-                ins.setSrc(src)
+                ins.set_src(src)
 
-    def setAux(self, aux):
+    def set_aux(self, aux):
         if aux:
             for ins in self.__instructions:
-                ins.setAux(aux)
+                ins.set_aux(aux)
 
-    def setAddress(self, address):
+    def set_address(self, address):
         if address:
             for ins in self.__instructions:
-                ins.setAux(address)
+                ins.set_address(address)
 
-    def needAux(self):
+    def need_aux(self):
         needed = False
         i = 0
         while (i < len(self.__instructions)) and not needed:
-            needed = self.__instructions[i].needAux()
+            needed = self.__instructions[i].need_aux()
             i += 1
         return needed
 
-    def needAddress(self):
+    def need_address(self):
         needed = False
         i = 0
         while (i < len(self.__instructions)) and not needed:
-            needed = self.__instructions[i].needAddress()
+            needed = self.__instructions[i].need_address()
             i += 1
         return needed
 
-    def addIntruction(self, instruction):
+    def add_instruction(self, instruction):
         self.__instructions += [instruction]
 
-    def getInstructions(self):
+    def get_instructions(self):
         return self.__instructions
 
     def __str__(self):

@@ -20,12 +20,12 @@ MNEMONIC = 'mnemonic'
 
 
 class XmlParser:
-    def __getAllFiles(self):
+    def get_all_files(self):
         return [f for f in listdir(os.getcwd() + GADGET_DIRECTORY) if isfile(join(os.getcwd() + GADGET_DIRECTORY, f))]
 
     def __init__(self, op):
         self.__op = op
-        self.__files = self.__getAllFiles()
+        self.__files = self.get_all_files()
         found = False
         i = 0
         while i < len(self.__files) and not found:
@@ -36,7 +36,7 @@ class XmlParser:
                     found = True
             i += 1
 
-    def getAllOps(self):
+    def get_all_ops(self):
         ops = []
         for file in self.__files:
             path = os.getcwd() + GADGET_DIRECTORY + '\\' + file
@@ -61,6 +61,6 @@ class XmlParser:
                         if reg2 is not None:
                             reg2_name = reg2.text
                         i = Instruction(ins.get(MNEMONIC), reg1_name, reg2_name)
-                        s.addIntruction(i)
-                    __operation.addSet(s)
+                        s.add_instruction(i)
+                    __operation.add_set(s)
         return __operation

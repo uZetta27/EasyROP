@@ -10,16 +10,16 @@ class Args:
         self.__args = None
         arguments = sys.argv[1:]
         self.__p = Parser(None)
-        self.__parse(arguments)
+        self.parse(arguments)
 
-    def __parse(self, arguments):
+    def parse(self, arguments):
         parser = argparse.ArgumentParser()
 
         parser.add_argument("-v", "--version", action="store_true", help="Display EasyROP's version")
         parser.add_argument("--binary", type=str, metavar="<path>", help="Specify a binary path to analyze")
         parser.add_argument("--depth", type=int, metavar="<bytes>", default=10, help="Depth for search engine (default 10 bytes)")
         parser.add_argument("--all", action="store_true", help="Disables the removal of duplicate gadgets")
-        ops = self.__p.getAllOps()
+        ops = self.__p.get_all_ops()
         ops_string = ", ".join(ops)
         parser.add_argument("--op", type=str, metavar="<op>", help="Search for operation: " + ops_string)
         parser.add_argument("--reg-src", type=str, metavar="<reg>", help="Specify a source reg to operation")
@@ -29,19 +29,19 @@ class Args:
         parser.add_argument("--noretf", action="store_true", help="Disables gadgets terminated in a far return (retf)")
 
         self.__args = parser.parse_args(arguments)
-        self.__check_args()
-        self.__do_opcodes()
+        self.check_args()
+        self.do_opcodes()
 
-    def __do_opcodes(self):
-        ops = self.__p.getAllOps()
+    def do_opcodes(self):
+        ops = self.__p.get_all_ops()
         if self.__args.op and (self.__args.op not in ops):
             ops_string = ", ".join(ops)
             print("[Error] op must be: %s" % ops_string)
             sys.exit(-1)
 
-    def __check_args(self):
+    def check_args(self):
         if self.__args.version:
-            self.__print_version()
+            self.print_version()
             sys.exit(0)
 
         elif not self.__args.binary:
@@ -59,7 +59,7 @@ class Args:
             print("[Error] ropchain generation without an opcode (--help)")
             sys.exit(-1)
 
-    def __print_version(self):
+    def print_version(self):
         print("Version: %s" % EASYROP_VERSION)
         print("Author: Daniel Uroz")
 

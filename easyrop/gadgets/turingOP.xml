@@ -122,22 +122,6 @@
             </ins>
         </set>
         <set>
-            <ins mnemonic="xor">
-                <reg1>aux</reg1>
-                <reg2>aux</reg2>
-            </ins>
-            <ins mnemonic="not">
-                <reg1>aux</reg1>
-            </ins>
-            <ins mnemonic="neg">
-                <reg1>aux</reg1>
-            </ins>
-            <ins mnemonic="cmovc">
-                <reg1>dst</reg1>
-                <reg2>src</reg2>
-            </ins>
-        </set>
-        <set>
             <ins mnemonic="mov">
                 <reg1>dst</reg1>
                 <reg2>src</reg2>
@@ -196,13 +180,13 @@
     <operation name="load">
         <set>
             <ins mnemonic="lodsd">
-                <reg1>dst</reg1>
+                <reg1>src</reg1>
             </ins>
         </set>
         <set>
             <ins mnemonic="mov">
                 <reg1>dst</reg1>
-                <reg2>address</reg2>
+                <reg2>[src]</reg2>
             </ins>
         </set>
     </operation>
@@ -214,8 +198,8 @@
         </set>
         <set>
             <ins mnemonic="mov">
-                <reg1>address</reg1>
-                <reg2>dst</reg2>
+                <reg1>[dst]</reg1>
+                <reg2>src</reg2>
             </ins>
         </set>
     </operation>

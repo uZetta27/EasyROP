@@ -11,8 +11,8 @@ class Parser:
             print("[Error] Can't read form gadget source")
             return None
 
-    def getAllOps(self):
-        return self.__file.getAllOps()
+    def get_all_ops(self):
+        return self.__file.get_all_ops()
 
     def parse(self):
         return self.__file.parse()

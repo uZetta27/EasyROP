@@ -28,8 +28,9 @@ class Core:
         if not self.__options.all:
             self.__gadgets = self.delete_duplicate_gadgets(self.__gadgets)
         self.__gadgets = self.pass_clean(self.__gadgets)
-        # print
+        # print operation
         if self.__options.op:
+            # print ropchain
             if self.__options.ropchain:
                 ropchains = self.search_ropchains(binary, self.__options.op, self.__options.reg_src, self.__options.reg_dst)
                 self.print_ropchains(ropchains)
@@ -106,26 +107,22 @@ class Core:
                         for decode, ins in zip(decodes, s.get_instructions()):
                             if decode.mnemonic == ins.get_mnemonic():
                                 if len(decode.operands) > 0:
-                                    if not _aux:
-                                        if ins.is_aux(REG1):
-                                            _aux = self.get_register(decode, REG1)
-                                        elif ins.is_aux(REG2):
-                                            _aux = self.get_register(decode, REG2)
+                                    _aux = self.get_set_aux(_aux, decode, ins)
                             else:
                                 break
                         else:
                             saux = copy.deepcopy(s)
                             saux.set_aux(_aux)
                             decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
-                            result = self.same_gadget_set(decodes, saux)
-                            if result[0]:
-                                ret += [{"gadget": gadget, "values": result[1]}]
+                            same, values = self.same_gadget_set(decodes, saux)
+                            if same:
+                                ret += [{"gadget": gadget, "values": values}]
                 else:
                     for gadget in self.__gadgets:
                         decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
-                        result = self.same_gadget_set(decodes, s)
-                        if result[0]:
-                            ret += [{"gadget": gadget, "values": result[1]}]
+                        same, values = self.same_gadget_set(decodes, s)
+                        if same:
+                            ret += [{"gadget": gadget, "values": values}]
         else:
             for gadget in self.__gadgets:
                 operation = parser.get_operation()
@@ -138,29 +135,7 @@ class Core:
                     for decode, ins in zip(decodes, s.get_instructions()):
                         if decode.mnemonic == ins.get_mnemonic():
                             if len(decode.operands) > 0:
-                                if not _aux:
-                                    if ins.is_aux(REG1):
-                                        _aux = self.get_register(decode, REG1)
-                                    elif ins.is_aux(REG2):
-                                        _aux = self.get_register(decode, REG2)
-                                if not _dst:
-                                    if ins.is_dst_address(REG1):
-                                        _dst = self.get_reg_base(decode, REG1)
-                                    elif ins.is_dst(REG1):
-                                        _dst = self.get_register(decode, REG1)
-                                    elif ins.is_dst_address(REG2):
-                                        _dst = self.get_reg_base(decode, REG2)
-                                    elif ins.is_dst(REG2):
-                                        _dst = self.get_register(decode, REG2)
-                                if not _src:
-                                    if ins.is_src_address(REG1):
-                                        _src = self.get_reg_base(decode, REG1)
-                                    elif ins.is_src(REG1):
-                                        _src = self.get_register(decode, REG1)
-                                    elif ins.is_src_address(REG2):
-                                        _src = self.get_reg_base(decode, REG2)
-                                    elif ins.is_src(REG2):
-                                        _src = self.get_register(decode, REG2)
+                                _aux, _dst, _src = self.get_operands_set(_aux, _dst, _src, decode, ins)
                         else:
                             break
                     else:
@@ -168,10 +143,49 @@ class Core:
                         s.set_src(_src)
                         s.set_aux(_aux)
                         decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
-                        result = self.same_gadget_set(decodes, s)
-                        if result[0]:
-                            ret += [{"gadget": gadget, "values": result[1]}]
+                        same, values = self.same_gadget_set(decodes, s)
+                        if same:
+                            ret += [{"gadget": gadget, "values": values}]
         return ret
+
+    def get_operands_set(self, _aux, _dst, _src, decode, ins):
+        _aux = self.get_set_aux(_aux, decode, ins)
+        _dst = self.get_set_dst(_dst, decode, ins)
+        _src = self.get_set_src(_src, decode, ins)
+
+        return _aux, _dst, _src
+
+    def get_set_aux(self, _aux, decode, ins):
+        if not _aux:
+            if ins.is_aux(REG1):
+                _aux = self.get_register(decode, REG1)
+            elif ins.is_aux(REG2):
+                _aux = self.get_register(decode, REG2)
+        return _aux
+
+    def get_set_dst(self, _dst, decode, ins):
+        if not _dst:
+            if ins.is_dst_address(REG1):
+                _dst = self.get_reg_base(decode, REG1)
+            elif ins.is_dst(REG1):
+                _dst = self.get_register(decode, REG1)
+            elif ins.is_dst_address(REG2):
+                _dst = self.get_reg_base(decode, REG2)
+            elif ins.is_dst(REG2):
+                _dst = self.get_register(decode, REG2)
+        return _dst
+
+    def get_set_src(self, _src, decode, ins):
+        if not _src:
+            if ins.is_src_address(REG1):
+                _src = self.get_reg_base(decode, REG1)
+            elif ins.is_src(REG1):
+                _src = self.get_register(decode, REG1)
+            elif ins.is_src_address(REG2):
+                _src = self.get_reg_base(decode, REG2)
+            elif ins.is_src(REG2):
+                _src = self.get_register(decode, REG2)
+        return _src
 
     def same_gadget_set(self, decodes, set_):
         values = ''

@@ -1,3 +1,5 @@
+import sys
+
 from easyrop.binaries.pe import Pe
 
 
@@ -10,7 +12,7 @@ class Binary:
             self.__binary = Pe(self.__file_name)
         except:
             print("[Error] Can't open the binary or binary not found")
-            return None
+            sys.exit(-1)
 
     def get_file_name(self):
         return self.__file_name

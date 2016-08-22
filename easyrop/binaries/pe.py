@@ -9,11 +9,7 @@ class Pe:
         self.__archMode = None
         self.__arch = None
 
-        try:
-            self.__pe = PE(file_name)
-        except:
-            print("[Error] Can't open the binary or binary not found")
-            return None
+        self.__pe = PE(file_name)
 
         self.parse_arch()
 

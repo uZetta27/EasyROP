@@ -36,11 +36,8 @@
             </ins>
         </set>
         <set>
-            <ins mnemonic="pop">
-                <reg1 value="0xFFFFFFFF">dst</reg1>
-            </ins>
             <ins mnemonic="and">
-                <reg1>dst</reg1>
+                <reg1 value="0xFFFFFFFF">dst</reg1>
                 <reg2>src</reg2>
             </ins>
         </set>
@@ -180,7 +177,8 @@
     <operation name="load">
         <set>
             <ins mnemonic="lodsd">
-                <reg1>src</reg1>
+                <reg1>eax</reg1>
+                <reg2>[esi]</reg2>
             </ins>
         </set>
         <set>
@@ -301,47 +299,14 @@
         </set>
         <set>
             <ins mnemonic="xor">
-                <reg1 value="0x11111111">dst</reg1>
-                <reg2>dst</reg2>
+                <reg1 value="0xFFFFFFFF">dst</reg1>
+                <reg2>src</reg2>
             </ins>
         </set>
     </operation>
     <operation name="cond">
         <set>
-            <ins mnemonic="cmp">
-                <reg1>dst</reg1>
-                <reg2>src</reg2>
-            </ins>
-            <ins mnemonic="je">
-                <reg1>address</reg1>
-            </ins>
-        </set>
-        <set>
-            <ins mnemonic="cmp">
-                <reg1>dst</reg1>
-                <reg2>src</reg2>
-            </ins>
-            <ins mnemonic="jen">
-                <reg1>address</reg1>
-            </ins>
-        </set>
-        <set>
-            <ins mnemonic="test">
-                <reg1>dst</reg1>
-                <reg2>src</reg2>
-            </ins>
-            <ins mnemonic="je">
-                <reg1>address</reg1>
-            </ins>
-        </set>
-        <set>
-            <ins mnemonic="test">
-                <reg1>dst</reg1>
-                <reg2>src</reg2>
-            </ins>
-            <ins mnemonic="jen">
-                <reg1>address</reg1>
-            </ins>
+            <ins mnemonic="TODO" />
         </set>
     </operation>
 </operations>

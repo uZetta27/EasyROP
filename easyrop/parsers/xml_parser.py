@@ -14,9 +14,10 @@ OPERATION = 'operation'
 NAME = 'name'
 SET = 'set'
 INSTRUCTION = 'ins'
-REGISTER_1 = 'reg1'
-REGISTER_2 = 'reg2'
+REG1 = 'reg1'
+REG2 = 'reg2'
 MNEMONIC = 'mnemonic'
+VALUE = 'value'
 
 
 class XmlParser:
@@ -45,22 +46,28 @@ class XmlParser:
                 ops += [operation.get(NAME)]
         return ops
 
-    def parse(self):
+    def get_operation(self):
         __operation = Operation(self.__op)
         for operation in self.__file.findall(OPERATION):
             if operation.get(NAME) == self.__op:
-                for set in operation.iter(SET):
+                for set_ in operation.iter(SET):
                     s = Set()
-                    for ins in set.iter(INSTRUCTION):
-                        reg1 = ins.find(REGISTER_1)
+                    for ins in set_.iter(INSTRUCTION):
+                        reg1 = ins.find(REG1)
                         reg1_name = ''
-                        reg2 = ins.find(REGISTER_2)
+                        value1 = ''
+                        reg2 = ins.find(REG2)
                         reg2_name = ''
+                        value2 = ''
                         if reg1 is not None:
                             reg1_name = reg1.text
+                            if reg1.get(VALUE) is not None:
+                                value1 = reg1.get(VALUE)
                         if reg2 is not None:
                             reg2_name = reg2.text
-                        i = Instruction(ins.get(MNEMONIC), reg1_name, reg2_name)
+                            if reg2.get(VALUE) is not None:
+                                value2 = reg2.get(VALUE)
+                        i = Instruction(ins.get(MNEMONIC), reg1_name, reg2_name, value1, value2)
                         s.add_instruction(i)
                     __operation.add_set(s)
         return __operation

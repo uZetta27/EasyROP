@@ -17,7 +17,7 @@ class Args:
 
         parser.add_argument("-v", "--version", action="store_true", help="Display EasyROP's version")
         parser.add_argument("--binary", type=str, metavar="<path>", help="Specify a binary path to analyze")
-        parser.add_argument("--depth", type=int, metavar="<bytes>", default=10, help="Depth for search engine (default 10 bytes)")
+        parser.add_argument("--depth", type=int, metavar="<bytes>", default=5, help="Depth for search engine (default 5 bytes)")
         parser.add_argument("--all", action="store_true", help="Disables the removal of duplicate gadgets")
         ops = self.__p.get_all_ops()
         ops_string = ", ".join(ops)
@@ -33,11 +33,12 @@ class Args:
         self.do_opcodes()
 
     def do_opcodes(self):
-        ops = self.__p.get_all_ops()
-        if self.__args.op and (self.__args.op not in ops):
-            ops_string = ", ".join(ops)
-            print("[Error] op must be: %s" % ops_string)
-            sys.exit(-1)
+        if self.__args.op:
+            ops = self.__p.get_all_ops()
+            if self.__args.op not in ops:
+                ops_string = ", ".join(ops)
+                print("[Error] op must be: %s" % ops_string)
+                sys.exit(-1)
 
     def check_args(self):
         if self.__args.version:

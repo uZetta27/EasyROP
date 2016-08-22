@@ -1,4 +1,6 @@
-from easyrop.parsers.xmlParser import XmlParser
+import sys
+
+from easyrop.parsers.xml_parser import XmlParser
 
 
 class Parser:
@@ -9,10 +11,10 @@ class Parser:
             self.__file = XmlParser(op)
         except:
             print("[Error] Can't read form gadget source")
-            return None
+            sys.exit(-1)
 
     def get_all_ops(self):
         return self.__file.get_all_ops()
 
-    def parse(self):
-        return self.__file.parse()
+    def get_operation(self):
+        return self.__file.get_operation()

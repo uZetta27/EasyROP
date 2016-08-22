@@ -20,7 +20,7 @@ class Instruction:
             reg1 = reg1.replace("]", "")
             self.__address[REG1] = True
             self.__registers[REG1] = reg1
-        if (reg2 == DESTINATION_ADDRESS) or (reg2 == SOURCE_ADDRESS) or ('[' in reg2):
+        if (reg2 == DESTINATION_ADDRESS) or (reg2 == SOURCE_ADDRESS):
             self.__address[REG2] = True
         if ('[' in reg2) and not ((reg2 == DESTINATION_ADDRESS) or (reg2 == SOURCE_ADDRESS)):
             reg2 = reg2.replace("[", "")
@@ -76,6 +76,16 @@ class Instruction:
     def is_address(self, reg):
         if (reg >= 0) and (reg < len(self.__address)):
             return self.__address[reg]
+        return False
+
+    def is_src_address(self, reg):
+        if (reg >= 0) and (reg < len(self.__address)):
+            return self.__registers[reg] == SOURCE_ADDRESS
+        return False
+
+    def is_dst_address(self, reg):
+        if (reg >= 0) and (reg < len(self.__address)):
+            return self.__registers[reg] == DESTINATION_ADDRESS
         return False
 
     def need_value(self, reg):

@@ -27,15 +27,20 @@ class XmlParser:
     def __init__(self, op):
         self.__op = op
         self.__files = self.get_all_files()
+        self.__file = self.get_file(op)
+
+    def get_file(self, op):
         found = False
         i = 0
+        file = None
         while i < len(self.__files) and not found:
             path = os.getcwd() + GADGET_DIRECTORY + '\\' + self.__files[i]
-            self.__file = xml.etree.ElementTree.parse(path).getroot()
-            for operation in self.__file.findall(OPERATION):
+            file = xml.etree.ElementTree.parse(path).getroot()
+            for operation in file.findall(OPERATION):
                 if op == operation.get(NAME):
                     found = True
             i += 1
+        return file
 
     def get_all_ops(self):
         ops = []

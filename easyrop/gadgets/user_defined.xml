@@ -12,13 +12,21 @@
         <!ATTLIST reg1
                 value CDATA #IMPLIED>
         <!ELEMENT reg2 (#PCDATA)>
+        <!ATTLIST reg2
+                value CDATA #IMPLIED>
         ]>
 <operations>
-     <operation name="neg">
-         <set>
-            <ins mnemonic="neg">
+    <operation name="nop">
+        <set>
+            <ins mnemonic="ret" />
+        </set>
+    </operation>
+    <operation name="adc">
+        <set>
+            <ins mnemonic="adc">
                 <reg1>dst</reg1>
+                <reg1>src</reg1>
             </ins>
-         </set>
+        </set>
     </operation>
 </operations>

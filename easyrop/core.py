@@ -17,13 +17,12 @@ class Core:
         self.__options = options
         self.__gadgets = []
 
-    def analyze(self):
+    def analyze(self, silent=False):
         start = datetime.datetime.now()
-        binary = Binary(self.__options)
         # search for gadgets
-        self.__gadgets += self.add_rop_gadgets(binary)
+        self.__gadgets += self.add_rop_gadgets()
         if not self.__options.nojop:
-            self.__gadgets += self.add_jop_gadgets(binary)
+            self.__gadgets += self.add_jop_gadgets()
         # apply some options
         if not self.__options.all:
             self.__gadgets = self.delete_duplicate_gadgets(self.__gadgets)
@@ -32,18 +31,24 @@ class Core:
         if self.__options.op:
             # print ropchain
             if self.__options.ropchain:
-                ropchains = self.search_ropchains(binary, self.__options.op, self.__options.reg_src, self.__options.reg_dst)
-                self.print_ropchains(ropchains)
+                ropchains = self.search_ropchains(self.__options.op, self.__options.reg_src, self.__options.reg_dst)
+                if not silent:
+                    self.print_ropchains(ropchains)
             else:
-                gadgets = self.search_operation(binary, self.__options.op, self.__options.reg_src, self.__options.reg_dst)
-                self.print_operation(gadgets)
+                gadgets = self.search_operation(self.__gadgets, self.__options.op, self.__options.reg_src, self.__options.reg_dst)
+                if not silent:
+                    self.print_operation(gadgets)
         else:
-            self.print_gadgets(self.__gadgets)
+            if not silent:
+                self.print_gadgets(self.__gadgets)
         end = datetime.datetime.now() - start
         # print time
-        print('\nTime elapsed: %s' % str(end))
+        if not silent:
+            print('\nTime elapsed: %s' % str(end))
+        else:
+            return self.__gadgets
 
-    def add_rop_gadgets(self, binary):
+    def add_rop_gadgets(self):
         gadgets = [
             [b"\xc3", 1],               # ret
             [b"\xc2[\x00-\xff]{2}", 3]  # ret <imm>
@@ -54,9 +59,9 @@ class Core:
                 [b"\xca[\x00-\xff]{2}", 3]   # retf <imm>
             ]
 
-        return self.search_gadgets(binary, gadgets)
+        return self.search_gadgets(gadgets)
 
-    def add_jop_gadgets(self, binary):
+    def add_jop_gadgets(self):
         gadgets = [
             [b"\xff[\x20\x21\x22\x23\x26\x27]{1}", 2],      # jmp  [reg]
             [b"\xff[\xe0\xe1\xe2\xe3\xe4\xe6\xe7]{1}", 2],  # jmp  [reg]
@@ -64,9 +69,10 @@ class Core:
             [b"\xff[\xd0\xd1\xd2\xd3\xd4\xd6\xd7]{1}", 2]   # call [reg]
         ]
 
-        return self.search_gadgets(binary, gadgets)
+        return self.search_gadgets(gadgets)
 
-    def search_gadgets(self, binary, gadgets):
+    def search_gadgets(self, gadgets):
+        binary = Binary(self.__options)
         section = binary.get_exec_sections()
         vaddr = binary.get_entry_point()
         arch = binary.get_arch()
@@ -87,7 +93,8 @@ class Core:
                             ret += [{"vaddr": vaddr + ref - depth, "gadget": gadget, "bytes": section[ref - depth:ref + gad[INSTRUCTION_SIZE]]}]
         return ret
 
-    def search_operation(self, binary, op, src, dst):
+    def search_operation(self, gadgets, op, src, dst):
+        binary = Binary(self.__options)
         ret = []
         parser = Parser(op)
         arch = binary.get_arch()
@@ -101,7 +108,7 @@ class Core:
             sets = operation.get_sets()
             for s in sets:
                 if s.need_aux():
-                    for gadget in self.__gadgets:
+                    for gadget in gadgets:
                         _aux = None
                         decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
                         for decode, ins in zip(decodes, s.get_instructions()):
@@ -118,13 +125,13 @@ class Core:
                             if same:
                                 ret += [{"gadget": gadget, "values": values}]
                 else:
-                    for gadget in self.__gadgets:
+                    for gadget in gadgets:
                         decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
                         same, values = self.same_gadget_set(decodes, s)
                         if same:
                             ret += [{"gadget": gadget, "values": values}]
         else:
-            for gadget in self.__gadgets:
+            for gadget in gadgets:
                 operation = parser.get_operation()
                 sets = operation.get_sets()
                 for s in sets:
@@ -217,7 +224,7 @@ class Core:
 
         return False, values
 
-    def search_ropchains(self, binary, op, src, dst):
+    def search_ropchains(self, op, src, dst):
         parser = Parser(op)
         ret = []
         if not (src and dst):

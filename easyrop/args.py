@@ -6,9 +6,8 @@ from easyrop.parsers.parser import Parser
 
 
 class Args:
-    def __init__(self):
+    def __init__(self, arguments):
         self.__args = None
-        arguments = sys.argv[1:]
         self.__p = Parser(None)
         self.parse(arguments)
 
@@ -27,10 +26,35 @@ class Args:
         parser.add_argument("--ropchain", action="store_true", help="Enables ropchain generation to search for operation")
         parser.add_argument("--nojop", action="store_true", help="Disables JOP gadgets")
         parser.add_argument("--noretf", action="store_true", help="Disables gadgets terminated in a far return (retf)")
+        parser.add_argument("--test", action="store_true", help="Analyze KnownDLLs of the computer to test viability of an attack (it takes time: ~15 min)")
+        parser.add_argument("--test-file", type=str, metavar="<path>", help="Analyze a file to test viability of an attack")
 
         self.__args = parser.parse_args(arguments)
         self.check_args()
-        self.do_opcodes()
+
+    def check_args(self):
+        if self.__args.version:
+            self.print_version()
+            sys.exit(0)
+
+        elif not (self.__args.test or self.__args.test_file):
+            if not self.__args.binary:
+                print("[Error] Need a binary/folder filename (--binary or --help)")
+                sys.exit(-1)
+
+            elif self.__args.depth < 2:
+                print("[Error] The depth must be >= 2")
+                sys.exit(-1)
+
+            elif not self.__args.op and (self.__args.reg_src or self.__args.reg_dst):
+                print("[Error] reg specified without an opcode (--help)")
+                sys.exit(-1)
+
+            elif not self.__args.op and self.__args.ropchain:
+                print("[Error] ropchain generation without an opcode (--help)")
+                sys.exit(-1)
+
+            self.do_opcodes()
 
     def do_opcodes(self):
         if self.__args.op:
@@ -39,26 +63,6 @@ class Args:
                 ops_string = ", ".join(ops)
                 print("[Error] op must be: %s" % ops_string)
                 sys.exit(-1)
-
-    def check_args(self):
-        if self.__args.version:
-            self.print_version()
-            sys.exit(0)
-
-        elif not self.__args.binary:
-            print("[Error] Need a binary/folder filename (--binary or --help)")
-            sys.exit(-1)
-
-        elif self.__args.depth < 2:
-            print("[Error] The depth must be >= 2")
-            sys.exit(-1)
-
-        elif not self.__args.op and (self.__args.reg_src or self.__args.reg_dst):
-            print("[Error] reg specified without an opcode (--help)")
-            sys.exit(-1)
-        elif not self.__args.op and self.__args.ropchain:
-            print("[Error] ropchain generation without an opcode (--help)")
-            sys.exit(-1)
 
     def print_version(self):
         print("Version: %s" % EASYROP_VERSION)

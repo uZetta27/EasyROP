@@ -12,6 +12,8 @@
         <!ATTLIST reg1
                 value CDATA #IMPLIED>
         <!ELEMENT reg2 (#PCDATA)>
+        <!ATTLIST reg2
+                value CDATA #IMPLIED>
         ]>
 <operations>
     <operation name="lc">
@@ -228,11 +230,6 @@
                 <reg2>src</reg2>
             </ins>
         </set>
-        <set>
-            <ins mnemonic="inc">
-                <reg1>dst</reg1>
-            </ins>
-        </set>
     </operation>
     <operation name="sub">
         <set>
@@ -259,11 +256,6 @@
             <ins mnemonic="sbb">
                 <reg1>dst</reg1>
                 <reg2>src</reg2>
-            </ins>
-        </set>
-        <set>
-            <ins mnemonic="dec">
-                <reg1>dst</reg1>
             </ins>
         </set>
     </operation>

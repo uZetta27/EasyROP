@@ -21,11 +21,10 @@
             <ins mnemonic="ret" />
         </set>
     </operation>
-    <operation name="adc">
+    <operation name="neg">
         <set>
-            <ins mnemonic="adc">
+            <ins mnemonic="neg">
                 <reg1>dst</reg1>
-                <reg1>src</reg1>
             </ins>
         </set>
     </operation>

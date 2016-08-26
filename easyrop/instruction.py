@@ -15,14 +15,14 @@ class Instruction:
         self.__address = [False, False]
         if (reg1 == DESTINATION_ADDRESS) or (reg1 == SOURCE_ADDRESS):
             self.__address[REG1] = True
-        if ('[' in reg1) and not ((reg1 == DESTINATION_ADDRESS) or (reg1 == SOURCE_ADDRESS)):
+        if ('[' in reg1) and (']' in reg1) and not ((reg1 == DESTINATION_ADDRESS) or (reg1 == SOURCE_ADDRESS)):
             reg1 = reg1.replace("[", "")
             reg1 = reg1.replace("]", "")
             self.__address[REG1] = True
             self.__registers[REG1] = reg1
         if (reg2 == DESTINATION_ADDRESS) or (reg2 == SOURCE_ADDRESS):
             self.__address[REG2] = True
-        if ('[' in reg2) and not ((reg2 == DESTINATION_ADDRESS) or (reg2 == SOURCE_ADDRESS)):
+        if ('[' in reg2) and (']' in reg2) and not ((reg2 == DESTINATION_ADDRESS) or (reg2 == SOURCE_ADDRESS)):
             reg2 = reg2.replace("[", "")
             reg2 = reg2.replace("]", "")
             self.__address[REG2] = True
@@ -54,6 +54,12 @@ class Instruction:
             self.__registers[REG1] = value
         if self.__registers[REG2] == reg_type:
             self.__registers[REG2] = value
+
+    def need_dst(self):
+        return (self.__registers[REG1] or self.__registers[REG2]) == (DESTINATION or DESTINATION_ADDRESS)
+
+    def need_src(self):
+        return (self.__registers[REG1] or self.__registers[REG2]) == (SOURCE or SOURCE_ADDRESS)
 
     def need_aux(self):
         return (self.__registers[REG1] or self.__registers[REG2]) == AUXILIARY

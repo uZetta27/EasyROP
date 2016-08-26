@@ -27,11 +27,12 @@ class Core:
         if not self.__options.all:
             self.__gadgets = self.delete_duplicate_gadgets(self.__gadgets)
         self.__gadgets = self.pass_clean(self.__gadgets)
+        self.__gadgets = self.alpha_sortgadgets(self.__gadgets)
         # print operation
         if self.__options.op:
             # print ropchain
             if self.__options.ropchain:
-                ropchains = self.search_ropchains(self.__options.op, self.__options.reg_src, self.__options.reg_dst)
+                ropchains = self.search_ropchains(self.__gadgets, self.__options.op, self.__options.reg_src, self.__options.reg_dst)
                 if not silent:
                     self.print_ropchains(ropchains)
             else:
@@ -101,8 +102,9 @@ class Core:
         mode = binary.get_arch_mode()
         md = Cs(arch, mode)
         md.detail = True
-        if src and dst:
-            operation = parser.get_operation()
+        operation = parser.get_operation()
+        if ((operation.need_src() and src) or (operation.need_dst() and dst)) and\
+                not ((operation.need_src() and not src) or (operation.need_dst() and not dst)):
             operation.set_dst(dst)
             operation.set_src(src)
             sets = operation.get_sets()
@@ -197,56 +199,104 @@ class Core:
     def same_gadget_set(self, decodes, set_):
         values = ''
         for decode, ins in zip(decodes, set_.get_instructions()):
-            if decode.mnemonic == ins.get_mnemonic():
-                if len(decode.operands) > 0:
-                    if ins.there_is_reg(REG1):
-                        if ins.need_value(REG1):
-                            values += ins.get_value(REG1)
-                        if ins.is_address(REG1):
-                            if ins.get_register(REG1) != self.get_reg_base(decode, REG1):
-                                break
-                        else:
-                            if ins.get_register(REG1) != self.get_register(decode, REG1):
-                                break
-                    if ins.there_is_reg(REG2):
-                        if ins.need_value(REG2):
-                            values += ins.get_value(REG2)
-                        if ins.is_address(REG2):
-                            if ins.get_register(REG2) != self.get_reg_base(decode, REG2):
-                                break
-                        else:
-                            if ins.get_register(REG2) != self.get_register(decode, REG2):
-                                break
-            else:
+            same, v = self.same_gadget_ins(decode, ins)
+            if not same:
                 break
+            values += v
         else:
             return True, values
 
         return False, values
 
-    def search_ropchains(self, op, src, dst):
+    def same_gadget_ins(self, decode, ins):
+        same = True
+        values = ''
+        if decode.mnemonic == ins.get_mnemonic():
+            if len(decode.operands) > 0:
+                if ins.there_is_reg(REG1):
+                    if ins.need_value(REG1):
+                        values += ins.get_value(REG1)
+                    if ins.is_address(REG1):
+                        if ins.get_register(REG1) != self.get_reg_base(decode, REG1):
+                            same = False
+                    else:
+                        if ins.get_register(REG1) != self.get_register(decode, REG1):
+                            same = False
+                if same and ins.there_is_reg(REG2):
+                    if ins.need_value(REG2):
+                        values += ins.get_value(REG2)
+                    if ins.is_address(REG2):
+                        if ins.get_register(REG2) != self.get_reg_base(decode, REG2):
+                            same = False
+                    else:
+                        if ins.get_register(REG2) != self.get_register(decode, REG2):
+                            same = False
+        else:
+            same = False
+        return same, values
+
+    def search_ropchains(self, gadgets, op, src, dst):
+        binary = Binary(self.__options)
+        gadgets = self.lenght_sortgadgets(gadgets)
+        arch = binary.get_arch()
+        mode = binary.get_arch_mode()
+        md = Cs(arch, mode)
+        md.detail = True
         parser = Parser(op)
         ret = []
-        if not (src and dst):
-            print('Not supported: src and dst needed')
-        else:
-            operation = parser.get_operation()
+        operation = parser.get_operation()
+        if ((operation.need_src() and src) or (operation.need_dst() and dst)) and \
+                not ((operation.need_src() and not src) or (operation.need_dst() and not dst)):
             operation.set_dst(dst)
             operation.set_src(src)
             sets = operation.get_sets()
             for s in sets:
-                chain = []
                 if len(s) > 1:
-                    for ins in s.get_instructions():
-                        for gadget in self.__gadgets:
-                            toSearch = str(ins)
-                            gad = gadget["gadget"]
-                            searched = re.match(toSearch, gad)
-                            if searched:
-                                chain += [gadget]
-                                break
-                        if len(s) == len(chain):
-                            ret += [chain]
+                    chain = []
+                    if s.need_aux():
+                        i = 0
+                        j = 0
+                        _aux = None
+                        searched_aux = []
+                        while (j < len(gadgets)) and (i < len(s)):
+                            decodes = md.disasm(gadgets[j]["bytes"], gadgets[j]["vaddr"])
+                            decode = next(decodes)
+                            ins = s.get_instructions()[i]
+                            if decode.mnemonic == ins.get_mnemonic():
+                                if len(decode.operands) > 0:
+                                    temp = self.get_set_aux(_aux, decode, ins)
+                                    if temp not in searched_aux:
+                                        _aux = temp
+                                        saux = copy.deepcopy(s)
+                                        saux.set_aux(_aux)
+                                        decodes = md.disasm(gadgets[j]["bytes"], gadgets[j]["vaddr"])
+                                        same, values = self.same_gadget_ins(next(decodes), saux.get_instructions()[i])
+                                        if same:
+                                            chain += [{"gadget": gadgets[j], "values": values}]
+                                            i += 1
+                                            j = -1
+                                else:
+                                    chain += [{"gadget": gadgets[j], "values": ''}]
+                                    i += 1
+                                    j = -1
+                            j += 1
+                            if j == len(gadgets):
+                                if _aux is not None:
+                                    i = 0
+                                    j = 0
+                                    searched_aux += [_aux]
+                                    _aux = None
+                                    chain = []
+                    else:
+                        for ins in s.get_instructions():
+                            for gadget in gadgets:
+                                decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
+                                same, values = self.same_gadget_ins(next(decodes), ins)
+                                if same:
+                                    chain += [{"gadget": gadget, "values": values}]
+                                    break
+                    if len(s) == len(chain):
+                        ret += [chain]
         return ret
 
     def get_register(self, decode, position):
@@ -269,7 +319,6 @@ class Core:
     def print_gadgets(self, gadgets):
         print("Gadgets information")
         print("============================================================")
-        gadgets = self.alpha_sortgadgets(gadgets)
         for gad in gadgets:
             print("0x%x : %s" % (gad["vaddr"], gad["gadget"]))
         print("\nGadgets found: %d" % len(gadgets))
@@ -277,7 +326,6 @@ class Core:
     def print_operation(self, gadgets):
         print("Operation \'%s\' gadgets" % self.__options.op)
         print("============================================================")
-        gadgets = self.alpha_sortoperation(gadgets)
         for gad in gadgets:
             print("0x%x : %s %s" % (gad["gadget"]["vaddr"], gad["gadget"]["gadget"], gad["values"]))
         print("\nGadgets found: %d" % len(gadgets))
@@ -287,7 +335,7 @@ class Core:
         print("============================================================")
         for chain in ropchains:
             for gad in chain:
-                print("0x%x : %s" % (gad["vaddr"], gad["gadget"]))
+                print("0x%x : %s %s" % (gad["gadget"]["vaddr"], gad["gadget"]["gadget"], gad["values"]))
             print('-----------------------------------------')
         print("\nROPchains found: %d" % len(ropchains))
 
@@ -303,10 +351,10 @@ class Core:
         return unique_gadgets
 
     def alpha_sortgadgets(self, current_gadgets):
-        return sorted(current_gadgets, key=lambda key: key["gadget"])
+        return sorted(current_gadgets, key=lambda gadget: gadget["gadget"])
 
-    def alpha_sortoperation(self, current_gadgets):
-        return sorted(current_gadgets, key=lambda key: key["gadget"]["gadget"])
+    def lenght_sortgadgets(self, current_gadgets):
+        return sorted(current_gadgets, key=lambda gadget: len(gadget["bytes"]))
 
     def pass_clean(self, gadgets):
         new = []

@@ -20,6 +20,22 @@ class Operation:
             for s in self.__sets:
                 s.set_aux(aux)
 
+    def need_src(self):
+        needed = False
+        i = 0
+        while (i < len(self.__sets)) and not needed:
+            needed = self.__sets[i].need_src()
+            i += 1
+        return needed
+
+    def need_dst(self):
+        needed = False
+        i = 0
+        while (i < len(self.__sets)) and not needed:
+            needed = self.__sets[i].need_dst()
+            i += 1
+        return needed
+
     def add_set(self, s):
         self.__sets += [s]
 

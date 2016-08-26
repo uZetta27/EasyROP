@@ -29,6 +29,22 @@ class Set:
             for ins in self.__instructions:
                 ins.set_src_address(address)
 
+    def need_dst(self):
+        needed = False
+        i = 0
+        while (i < len(self.__instructions)) and not needed:
+            needed = self.__instructions[i].need_dst()
+            i += 1
+        return needed
+
+    def need_src(self):
+        needed = False
+        i = 0
+        while (i < len(self.__instructions)) and not needed:
+            needed = self.__instructions[i].need_src()
+            i += 1
+        return needed
+
     def need_aux(self):
         needed = False
         i = 0

@@ -178,12 +178,6 @@
     </operation>
     <operation name="load">
         <set>
-            <ins mnemonic="lodsd">
-                <reg1>eax</reg1>
-                <reg2>[esi]</reg2>
-            </ins>
-        </set>
-        <set>
             <ins mnemonic="mov">
                 <reg1>dst</reg1>
                 <reg2>[src]</reg2>
@@ -191,11 +185,6 @@
         </set>
     </operation>
     <operation name="store">
-        <set>
-            <ins mnemonic="stosd">
-                <reg1>dst</reg1>
-            </ins>
-        </set>
         <set>
             <ins mnemonic="mov">
                 <reg1>[dst]</reg1>
@@ -296,9 +285,35 @@
             </ins>
         </set>
     </operation>
-    <operation name="cond">
+    <operation name="cond1">
         <set>
-            <ins mnemonic="TODO" />
+            <ins mnemonic="sub">
+                <reg1>dst</reg1>
+                <reg2>src</reg2>
+            </ins>
+        </set>
+    </operation>
+    <operation name="cond2">
+        <set>
+            <ins mnemonic="xor">
+                <reg1>dst</reg1>
+                <reg2>dst</reg2>
+            </ins>
+            <ins mnemonic="adc">
+                <reg1>dst</reg1>
+                <reg2>dst</reg2>
+            </ins>
+        </set>
+    </operation>
+    <operation name="cond3">
+        <set>
+            <ins mnemonic="neg">
+                <reg1>src</reg1>
+            </ins>
+            <ins mnemonic="add">
+                <reg1>esp</reg1>
+                <reg2>src</reg2>
+            </ins>
         </set>
     </operation>
 </operations>

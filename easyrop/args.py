@@ -53,6 +53,17 @@ class Args:
             elif not self.__args.op and self.__args.ropchain:
                 print("[Error] ropchain generation without an opcode (--help)")
                 sys.exit(-1)
+            elif self.__args.op and self.__args.ropchain:
+                parser = Parser(self.__args.op)
+                operation = parser.get_operation()
+                if (operation.need_src() and not self.__args.reg_src) or (operation.need_dst() and not self.__args.reg_dst):
+                    warnings = []
+                    if operation.need_dst():
+                        warnings += ["dst"]
+                    if operation.need_src():
+                        warnings += ["src"]
+                    print("[Error] op \'%s\' need %s to generate ropchains" % (self.__args.op, " and ".join(warnings)))
+                    sys.exit(-1)
 
             self.do_opcodes()
 

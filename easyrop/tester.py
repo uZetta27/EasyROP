@@ -26,7 +26,8 @@ class Tester:
         start = datetime.datetime.now()
         print("============================================")
         print("FILE: %s" % file)
-        print("Load constant: %s" % self.test_op(file, "lc", True))
+        self.__gadgets = self.get_gadgets(file)
+        print("Load constant: %s" % self.test_op(file, "lc"))
         print("Move: %s" % self.test_op(file, "move"))
         print("Load from memory: %s" % self.test_op(file, "load"))
         print("Store to memory: %s" % self.test_op(file, "store"))
@@ -36,23 +37,26 @@ class Tester:
         print("Or: %s" % self.test_op(file, "or"))
         print("Xor: %s" % self.test_op(file, "xor"))
         print("Not: %s" % self.test_op(file, "not"))
-        print("Conditional jump: %s" % self.test_op(file, "cond"))
+        print("Conditional jump (first task): %s" % self.test_op(file, "cond1"))
+        print("Conditional jump (second task): %s" % self.test_op(file, "cond2"))
+        print("Conditional jump (third task): %s" % self.test_op(file, "cond3"))
         end = datetime.datetime.now() - start
         if not silent:
             print('\nTime elapsed: %s' % str(end))
 
-    def test_op(self, file, op, first=False):
+    def get_gadgets(self, file):
+        argv = ('--binary %s' % file).split()
+        args = Args(argv).get_args()
+        core = Core(args)
+        return core.analyze(True)
+
+    def test_op(self, file, op):
         argv = ('--binary %s --op %s' % (file, op)).split()
         args = Args(argv).get_args()
         core = Core(args)
-        if first:
-            self.__gadgets = core.analyze(True)
-            if len(self.__gadgets) != 0:
-                return True
-        else:
-            gadgets = core.search_operation(self.__gadgets, args.op, args.reg_src, args.reg_dst)
-            if len(gadgets) != 0:
-                return True
+        gadgets = core.search_operation(self.__gadgets, args.op, args.reg_src, args.reg_dst)
+        if len(gadgets) != 0:
+            return True
         return False
 
     def get_dlls(self):

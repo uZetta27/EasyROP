@@ -299,6 +299,9 @@ class Core:
                         ret += [chain]
         return ret
 
+    def get_string(self, decode):
+        return ("%s %s" % (decode.mnemonic, decode.op_str)).replace("  ", " ")
+
     def get_register(self, decode, position):
         reg = None
         if position < len(decode.operands):

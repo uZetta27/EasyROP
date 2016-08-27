@@ -56,10 +56,10 @@ class Instruction:
             self.__registers[REG2] = value
 
     def need_dst(self):
-        return (self.__registers[REG1] or self.__registers[REG2]) == (DESTINATION or DESTINATION_ADDRESS)
+        return (self.__registers[REG1] == DESTINATION) or (self.__registers[REG1] == DESTINATION_ADDRESS) or (self.__registers[REG2] == DESTINATION) or (self.__registers[REG2] == DESTINATION_ADDRESS)
 
     def need_src(self):
-        return (self.__registers[REG1] or self.__registers[REG2]) == (SOURCE or SOURCE_ADDRESS)
+        return (self.__registers[REG1] == SOURCE) or (self.__registers[REG1] == SOURCE_ADDRESS) or (self.__registers[REG2] == SOURCE) or (self.__registers[REG2] == SOURCE_ADDRESS)
 
     def need_aux(self):
         return (self.__registers[REG1] or self.__registers[REG2]) == AUXILIARY

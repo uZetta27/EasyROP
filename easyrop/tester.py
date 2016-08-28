@@ -445,7 +445,11 @@ class Tester:
         windir = os.environ['windir']
 
         for dll in dlls:
-            dll_path = windir + dll[VALUE_DATA]
+            value = dll[VALUE_DATA]
+            if "%SystemRoot%" in value:
+                dll_path = value.replace("%SystemRoot%", windir)
+            else:
+                dll_path = windir + value
             if os.path.isdir(dll_path):
                 directories += [dll]
         return directories

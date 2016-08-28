@@ -1,7 +1,4 @@
-import easyrop.args
-import easyrop.binaries.binary
-import easyrop.core
-import easyrop.tester
+
 
 
 def main():
@@ -12,8 +9,8 @@ def main():
 
     args = Args(sys.argv[1:]).get_args()
 
-    if args.test_file:
-        Tester().test_file(args.test_file)
+    if args.test_binary:
+        Tester().test_binary(args.test_binary)
     elif args.test:
         Tester().test()
     else:

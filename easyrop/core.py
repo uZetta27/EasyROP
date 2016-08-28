@@ -1,12 +1,11 @@
 import datetime
 import re
-
 from capstone import *
 from capstone.x86 import *
-
 from easyrop.binaries.binary import Binary
-from easyrop.parsers.parser import Parser
 from easyrop.instruction import *
+from easyrop.parsers.parser import Parser
+
 
 INSTRUCTION_OP = 0
 INSTRUCTION_SIZE = 1
@@ -73,7 +72,7 @@ class Core:
         return self.search_gadgets(gadgets)
 
     def search_gadgets(self, gadgets):
-        binary = Binary(self.__options)
+        binary = Binary(self.__options.binary)
         section = binary.get_exec_sections()
         vaddr = binary.get_entry_point()
         arch = binary.get_arch()
@@ -95,7 +94,7 @@ class Core:
         return ret
 
     def search_operation(self, gadgets, op, src, dst):
-        binary = Binary(self.__options)
+        binary = Binary(self.__options.binary)
         ret = []
         parser = Parser(op)
         arch = binary.get_arch()
@@ -236,7 +235,7 @@ class Core:
         return same, values
 
     def search_ropchains(self, gadgets, op, src, dst):
-        binary = Binary(self.__options)
+        binary = Binary(self.__options.binary)
         gadgets = self.lenght_sortgadgets(gadgets)
         arch = binary.get_arch()
         mode = binary.get_arch_mode()

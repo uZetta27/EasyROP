@@ -1,11 +1,10 @@
 import sys
-
 from easyrop.binaries.pe import Pe
 
 
 class Binary:
-    def __init__(self, options):
-        self.__file_name = options.binary
+    def __init__(self, binary):
+        self.__file_name = binary
         self.__binary = None
 
         try:

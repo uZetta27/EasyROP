@@ -291,26 +291,63 @@
                 <reg1>dst</reg1>
                 <reg2>src</reg2>
             </ins>
+            <ins mnemonic="xor">
+                <reg1>aux</reg1>
+                <reg2>aux</reg2>
+            </ins>
+            <ins mnemonic="adc">
+                <reg1>aux</reg1>
+                <reg2>aux</reg2>
+            </ins>
+            <ins mnemonic="neg">
+                <reg1>aux</reg1>
+            </ins>
         </set>
     </operation>
     <operation name="cond2">
         <set>
-            <ins mnemonic="xor">
+            <ins mnemonic="pop">
                 <reg1>dst</reg1>
-                <reg2>dst</reg2>
             </ins>
-            <ins mnemonic="adc">
-                <reg1>dst</reg1>
-                <reg2>dst</reg2>
-            </ins>
-        </set>
-    </operation>
-    <operation name="cond3">
-        <set>
-            <ins mnemonic="neg">
+            <ins mnemonic="and">
                 <reg1>src</reg1>
+                <reg2>dst</reg2>
             </ins>
             <ins mnemonic="add">
+                <reg1>esp</reg1>
+                <reg2>src</reg2>
+            </ins>
+        </set>
+        <set>
+            <ins mnemonic="pop">
+                <reg1>dst</reg1>
+            </ins>
+            <ins mnemonic="and">
+                <reg1>src</reg1>
+                <reg2>dst</reg2>
+            </ins>
+            <ins mnemonic="add">
+                <reg1>src</reg1>
+                <reg2>esp</reg2>
+            </ins>
+            <ins mnemonic="mov">
+                <reg1>esp</reg1>
+                <reg2>src</reg2>
+            </ins>
+        </set>
+        <set>
+            <ins mnemonic="pop">
+                <reg1>dst</reg1>
+            </ins>
+            <ins mnemonic="and">
+                <reg1>src</reg1>
+                <reg2>dst</reg2>
+            </ins>
+            <ins mnemonic="add">
+                <reg1>src</reg1>
+                <reg2>esp</reg2>
+            </ins>
+            <ins mnemonic="xchg">
                 <reg1>esp</reg1>
                 <reg2>src</reg2>
             </ins>

@@ -460,7 +460,13 @@ class Tester:
 
         for d in dirs:
             for dll in dlls:
-                dll_path = windir + d[VALUE_DATA] + '\\' + dll[VALUE_DATA]
+                value = d[VALUE_DATA]
+                if "%SystemRoot%" in value:
+                    path = value.replace("%SystemRoot%", windir)
+                else:
+                    path = windir + value
+                dll_path = path + '\\' + dll[VALUE_DATA]
                 if os.path.isfile(dll_path):
+                    print(dll_path)
                     dlls_paths += [dll_path]
         return dlls_paths

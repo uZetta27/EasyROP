@@ -22,6 +22,9 @@ REGISTERS = [["rax", "rbx", "rcx", "rdx"],
              ["ah", "bh", "ch", "dh"],
              ["al", "bl", "cl", "dl"]]
 
+DLLS = ["advapi32.dll", "comdlg32.dll", "gdi32.dll", "kernel32.dll", "msvcrt.dll", "ole32.dll", "psapi.dll",
+        "rpcrt4.dll", "setupapi.dll", "shell32.dll", "shlwapi.dll", "user32.dll", "wldap32.dll", "ws2_32.dll"]
+
 
 class Tester:
     def __init__(self):
@@ -31,8 +34,7 @@ class Tester:
     def test(self):
         start = datetime.datetime.now()
         dlls = self.get_dlls()
-        dirs = self.get_directories(dlls)
-        dlls_path = self.get_absolute_paths(dirs, dlls)
+        dlls_path = self.get_absolute_paths(dlls)
         for d in dlls_path:
             self.test_binary(d, True)
         end = datetime.datetime.now() - start
@@ -47,17 +49,31 @@ class Tester:
             self.__mode = REG_32
         self.__gadgets = self.get_gadgets(file)
         regs_found = self.load_constant(file)
-        if self.load_memory(file, regs_found):
-            if self.store_memory(file, regs_found):
-                if self.add(file, regs_found):
-                    if self.sub(file, regs_found):
-                        if self.xor(file, regs_found):
-                            if self.and_(file, regs_found):
-                                if self.or_(file, regs_found):
-                                    if self.cond1(file, regs_found):
-                                        if self.cond2(file, regs_found):
-                                            if self.move(file, regs_found):
-                                                print("All operations found!")
+        turing_completeness = True
+        result = self.load_memory(file, regs_found)
+        turing_completeness = turing_completeness and result
+        result = self.store_memory(file, regs_found)
+        turing_completeness = turing_completeness and result
+        result = self.add(file, regs_found)
+        turing_completeness = turing_completeness and result
+        result = self.sub(file, regs_found)
+        turing_completeness = turing_completeness and result
+        result = self.xor(file, regs_found)
+        turing_completeness = turing_completeness and result
+        result = self.and_(file, regs_found)
+        turing_completeness = turing_completeness and result
+        result = self.or_(file, regs_found)
+        turing_completeness = turing_completeness and result
+        result = self.not_(file, regs_found)
+        turing_completeness = turing_completeness and result
+        result = self.cond1(file, regs_found)
+        turing_completeness = turing_completeness and result
+        result = self.cond2(file, regs_found)
+        turing_completeness = turing_completeness and result
+        result = self.move(file, regs_found)
+        turing_completeness = turing_completeness and result
+        if turing_completeness:
+            print("All operations found!")
         end = datetime.datetime.now() - start
         if not silent:
             print('\nTime elapsed: %s' % str(end))
@@ -81,65 +97,53 @@ class Tester:
         return regs_found
 
     def load_memory(self, file, regs_found):
-        if sum(regs_found) < 2:
-            return False
-        found = False
-        i = 0
-        regs = REGISTERS[self.__mode:]
-        while i < len(regs):
-            j = 0
-            while j < len(regs[i]):
-                k = 0
-                while k < len(regs[i]) and not found:
-                    if regs_found[k]:
-                        found = self.test_op(file, "load --reg-dst %s --reg-src %s" % (regs[i][j], regs[i][k]))
-                        if found:
-                            print("Load from memory:")
-                            print("\t%s <- [%s]" % (regs[i][j], regs[i][k]))
-                    k += 1
-                j += 1
-            i += 1
+        found = self.test_op(file, "load")
+        if found:
+            found = False
+            i = 0
+            regs = REGISTERS[self.__mode:]
+            while i < len(regs):
+                j = 0
+                while j < len(regs[i]):
+                    k = 0
+                    while k < len(regs[i]) and not found:
+                        if regs_found[k]:
+                            found = self.test_op(file, "load --reg-dst %s --reg-src %s" % (regs[i][j], regs[i][k]))
+                            if found:
+                                print("Load from memory:")
+                                print("\t%s <- [%s]" % (regs[i][j], regs[i][k]))
+                        k += 1
+                    j += 1
+                i += 1
         return found
 
     def store_memory(self, file, regs_found):
-        found = False
-        i = 0
-        regs = REGISTERS[self.__mode:]
-        while i < len(regs):
-            j = 0
-            while j < len(regs[i]):
-                k = 0
-                while k < len(regs[i]) and not found:
-                    if j != k:
-                        if regs_found[k]:
-                            found = self.test_op(file, "store --reg-dst %s --reg-src %s" % (regs[i][j], regs[i][k]))
-                            if found:
-                                print("Store to memory:")
-                                print("\t[%s] <- %s" % (regs[i][j], regs[i][k]))
-                    k += 1
-                j += 1
-            i += 1
+        found = self.test_op(file, "store")
+        if found:
+            found = False
+            i = 0
+            regs = REGISTERS[self.__mode:]
+            while i < len(regs):
+                j = 0
+                while j < len(regs[i]):
+                    k = 0
+                    while k < len(regs[i]) and not found:
+                        if j != k:
+                            if regs_found[k]:
+                                found = self.test_op(file, "store --reg-dst %s --reg-src %s" % (regs[i][j], regs[i][k]))
+                                if found:
+                                    print("Store to memory:")
+                                    print("\t[%s] <- %s" % (regs[i][j], regs[i][k]))
+                        k += 1
+                    j += 1
+                i += 1
         return found
 
     def add(self, file, regs_found):
-        found = False
-        i = 0
+        found = self.test_op(file, "add")
         regs = REGISTERS[self.__mode:]
-        while i < len(regs):
-            j = 0
-            while j < len(regs[i]):
-                k = 0
-                while k < len(regs[i]) and not found:
-                    if j != k:
-                        if regs_found[k]:
-                            found = self.test_op(file, "add --reg-dst %s --reg-src %s" % (regs[i][j], regs[i][k]))
-                            if found:
-                                print("Add:")
-                                print("\t%s <- %s + %s" % (regs[i][j], regs[i][j], regs[i][k]))
-                    k += 1
-                j += 1
-            i += 1
-        if not found:
+        if found:
+            found = False
             i = 0
             while i < len(regs):
                 j = 0
@@ -150,6 +154,22 @@ class Tester:
                             if regs_found[k]:
                                 found = self.test_op(file, "add --reg-dst %s --reg-src %s" % (regs[i][j], regs[i][k]))
                                 if found:
+                                    print("Add:")
+                                    print("\t%s <- %s + %s" % (regs[i][j], regs[i][j], regs[i][k]))
+                        k += 1
+                    j += 1
+                i += 1
+        else:
+            i = 0
+            while i < len(regs):
+                j = 0
+                while j < len(regs[i]):
+                    k = 0
+                    while k < len(regs[i]) and not found:
+                        if j != k:
+                            if regs_found[k]:
+                                found = self.test_op(file, "add --reg-dst %s --reg-src %s --ropchain" % (regs[i][j], regs[i][k]))
+                                if found:
                                     print("Add: (ropchain)")
                                     print("\t%s <- %s + %s" % (regs[i][j], regs[i][j], regs[i][k]))
                         k += 1
@@ -158,24 +178,10 @@ class Tester:
         return found
 
     def sub(self, file, regs_found):
-        found = False
-        i = 0
+        found = self.test_op(file, "sub")
         regs = REGISTERS[self.__mode:]
-        while i < len(regs):
-            j = 0
-            while j < len(regs[i]):
-                k = 0
-                while k < len(regs[i]) and not found:
-                    if j != k:
-                        if regs_found[k]:
-                            found = self.test_op(file, "sub --reg-dst %s --reg-src %s" % (regs[i][j], regs[i][k]))
-                            if found:
-                                print("Sub:")
-                                print("\t%s <- %s - %s" % (regs[i][j], regs[i][j], regs[i][k]))
-                    k += 1
-                j += 1
-            i += 1
-        if not found:
+        if found:
+            found = False
             i = 0
             while i < len(regs):
                 j = 0
@@ -186,6 +192,22 @@ class Tester:
                             if regs_found[k]:
                                 found = self.test_op(file, "sub --reg-dst %s --reg-src %s" % (regs[i][j], regs[i][k]))
                                 if found:
+                                    print("Sub:")
+                                    print("\t%s <- %s - %s" % (regs[i][j], regs[i][j], regs[i][k]))
+                        k += 1
+                    j += 1
+                i += 1
+        else:
+            i = 0
+            while i < len(regs):
+                j = 0
+                while j < len(regs[i]):
+                    k = 0
+                    while k < len(regs[i]) and not found:
+                        if j != k:
+                            if regs_found[k]:
+                                found = self.test_op(file, "sub --reg-dst %s --reg-src %s --ropchain" % (regs[i][j], regs[i][k]))
+                                if found:
                                     print("Sub: (ropchain)")
                                     print("\t%s <- %s - %s" % (regs[i][j], regs[i][j], regs[i][k]))
                         k += 1
@@ -194,24 +216,10 @@ class Tester:
         return found
 
     def xor(self, file, regs_found):
-        found = False
-        i = 0
+        found = self.test_op(file, "xor")
         regs = REGISTERS[self.__mode:]
-        while i < len(regs):
-            j = 0
-            while j < len(regs[i]):
-                k = 0
-                while k < len(regs[i]) and not found:
-                    if j != k:
-                        if regs_found[k]:
-                            found = self.test_op(file, "xor --reg-dst %s --reg-src %s" % (regs[i][j], regs[i][k]))
-                            if found:
-                                print("Xor:")
-                                print("\t%s <- %s XOR %s" % (regs[i][j], regs[i][j], regs[i][k]))
-                    k += 1
-                j += 1
-            i += 1
-        if not found:
+        if found:
+            found = False
             i = 0
             while i < len(regs):
                 j = 0
@@ -222,6 +230,22 @@ class Tester:
                             if regs_found[k]:
                                 found = self.test_op(file, "xor --reg-dst %s --reg-src %s" % (regs[i][j], regs[i][k]))
                                 if found:
+                                    print("Xor:")
+                                    print("\t%s <- %s XOR %s" % (regs[i][j], regs[i][j], regs[i][k]))
+                        k += 1
+                    j += 1
+                i += 1
+        else:
+            i = 0
+            while i < len(regs):
+                j = 0
+                while j < len(regs[i]):
+                    k = 0
+                    while k < len(regs[i]) and not found:
+                        if j != k:
+                            if regs_found[k]:
+                                found = self.test_op(file, "xor --reg-dst %s --reg-src %s --ropchain" % (regs[i][j], regs[i][k]))
+                                if found:
                                     print("Xor: (ropchain)")
                                     print("\t%s <- %s XOR %s" % (regs[i][j], regs[i][j], regs[i][k]))
                         k += 1
@@ -230,24 +254,10 @@ class Tester:
         return found
 
     def and_(self, file, regs_found):
-        found = False
-        i = 0
+        found = self.test_op(file, "and")
         regs = REGISTERS[self.__mode:]
-        while i < len(regs):
-            j = 0
-            while j < len(regs[i]):
-                k = 0
-                while k < len(regs[i]) and not found:
-                    if j != k:
-                        if regs_found[k]:
-                            found = self.test_op(file, "and --reg-dst %s --reg-src %s" % (regs[i][j], regs[i][k]))
-                            if found:
-                                print("And:")
-                                print("\t%s <- %s AND %s" % (regs[i][j], regs[i][j], regs[i][k]))
-                    k += 1
-                j += 1
-            i += 1
-        if not found:
+        if found:
+            found = False
             i = 0
             while i < len(regs):
                 j = 0
@@ -258,6 +268,22 @@ class Tester:
                             if regs_found[k]:
                                 found = self.test_op(file, "and --reg-dst %s --reg-src %s" % (regs[i][j], regs[i][k]))
                                 if found:
+                                    print("And:")
+                                    print("\t%s <- %s AND %s" % (regs[i][j], regs[i][j], regs[i][k]))
+                        k += 1
+                    j += 1
+                i += 1
+        else:
+            i = 0
+            while i < len(regs):
+                j = 0
+                while j < len(regs[i]):
+                    k = 0
+                    while k < len(regs[i]) and not found:
+                        if j != k:
+                            if regs_found[k]:
+                                found = self.test_op(file, "and --reg-dst %s --reg-src %s --ropchain" % (regs[i][j], regs[i][k]))
+                                if found:
                                     print("And: (ropchain)")
                                     print("\t%s <- %s AND %s" % (regs[i][j], regs[i][j], regs[i][k]))
                         k += 1
@@ -266,24 +292,10 @@ class Tester:
         return found
 
     def or_(self, file, regs_found):
-        found = False
-        i = 0
+        found = self.test_op(file, "or")
         regs = REGISTERS[self.__mode:]
-        while i < len(regs):
-            j = 0
-            while j < len(regs[i]):
-                k = 0
-                while k < len(regs[i]) and not found:
-                    if j != k:
-                        if regs_found[k]:
-                            found = self.test_op(file, "or --reg-dst %s --reg-src %s" % (regs[i][j], regs[i][k]))
-                            if found:
-                                print("Or:")
-                                print("\t%s <- %s + %s" % (regs[i][j], regs[i][j], regs[i][k]))
-                    k += 1
-                j += 1
-            i += 1
-        if not found:
+        if found:
+            found = False
             i = 0
             while i < len(regs):
                 j = 0
@@ -294,6 +306,22 @@ class Tester:
                             if regs_found[k]:
                                 found = self.test_op(file, "or --reg-dst %s --reg-src %s" % (regs[i][j], regs[i][k]))
                                 if found:
+                                    print("Or:")
+                                    print("\t%s <- %s OR %s" % (regs[i][j], regs[i][j], regs[i][k]))
+                        k += 1
+                    j += 1
+                i += 1
+        else:
+            i = 0
+            while i < len(regs):
+                j = 0
+                while j < len(regs[i]):
+                    k = 0
+                    while k < len(regs[i]) and not found:
+                        if j != k:
+                            if regs_found[k]:
+                                found = self.test_op(file, "or --reg-dst %s --reg-src %s --ropchain" % (regs[i][j], regs[i][k]))
+                                if found:
                                     print("Or: (ropchain)")
                                     print("\t%s <- %s OR %s" % (regs[i][j], regs[i][j], regs[i][k]))
                         k += 1
@@ -301,25 +329,49 @@ class Tester:
                 i += 1
         return found
 
-    def cond1(self, file, regs_found):
-        found = False
-        i = 0
+    def not_(self, file, regs_found):
+        found = self.test_op(file, "not")
         regs = REGISTERS[self.__mode:]
-        while i < len(regs):
-            j = 0
-            while j < len(regs[i]):
-                k = 0
-                while k < len(regs[i]) and not found:
-                    if j != k:
-                        if regs_found[k]:
-                            found = self.test_op(file, "cond1 --reg-dst %s --reg-src %s" % (regs[i][j], regs[i][k]))
-                            if found:
-                                print("Contidional jumo:")
-                                print("\tif %s < %s" % (regs[i][j], regs[i][k]))
-                    k += 1
-                j += 1
-            i += 1
-        if not found:
+        if found:
+            found = False
+            i = 0
+            while i < len(regs):
+                j = 0
+                while j < len(regs[i]):
+                    k = 0
+                    while k < len(regs[i]) and not found:
+                        if j != k:
+                            if regs_found[k]:
+                                found = self.test_op(file, "not --reg-dst %s --reg-src %s" % (regs[i][j], regs[i][k]))
+                                if found:
+                                    print("Not:")
+                                    print("\t%s <- not %s" % (regs[i][j], regs[i][j]))
+                        k += 1
+                    j += 1
+                i += 1
+        else:
+            i = 0
+            while i < len(regs):
+                j = 0
+                while j < len(regs[i]):
+                    k = 0
+                    while k < len(regs[i]) and not found:
+                        if j != k:
+                            if regs_found[k]:
+                                found = self.test_op(file, "not --reg-dst %s --reg-src %s" % (regs[i][j], regs[i][k]))
+                                if found:
+                                    print("Not: (ropchain)")
+                                    print("\t%s <- not %s" % (regs[i][j], regs[i][j]))
+                        k += 1
+                    j += 1
+                i += 1
+        return found
+
+    def cond1(self, file, regs_found):
+        found = self.test_op(file, "cond1")
+        regs = REGISTERS[self.__mode:]
+        if found:
+            found = False
             i = 0
             while i < len(regs):
                 j = 0
@@ -330,7 +382,23 @@ class Tester:
                             if regs_found[k]:
                                 found = self.test_op(file, "cond1 --reg-dst %s --reg-src %s" % (regs[i][j], regs[i][k]))
                                 if found:
-                                    print("Conditional jump: (ropchain)")
+                                    print("Conditional jump (first task):")
+                                    print("\tif %s < %s" % (regs[i][j], regs[i][k]))
+                        k += 1
+                    j += 1
+                i += 1
+        else:
+            i = 0
+            while i < len(regs):
+                j = 0
+                while j < len(regs[i]):
+                    k = 0
+                    while k < len(regs[i]) and not found:
+                        if j != k:
+                            if regs_found[k]:
+                                found = self.test_op(file, "cond1 --reg-dst %s --reg-src %s --ropchain" % (regs[i][j], regs[i][k]))
+                                if found:
+                                    print("Conditional jump (first task): (ropchain)")
                                     print("\tif %s < %s" % (regs[i][j], regs[i][k]))
                         k += 1
                     j += 1
@@ -338,24 +406,10 @@ class Tester:
         return found
 
     def cond2(self, file, regs_found):
-        found = False
-        i = 0
+        found = self.test_op(file, "cond2")
         regs = REGISTERS[self.__mode:]
-        while i < len(regs):
-            j = 0
-            while j < len(regs[i]):
-                k = 0
-                while k < len(regs[i]) and not found:
-                    if j != k:
-                        if regs_found[k]:
-                            found = self.test_op(file, "cond2 --reg-dst %s --reg-src %s" % (regs[i][j], regs[i][k]))
-                            if found:
-                                print("Contidional jump:")
-                                print("\tthen esp + %s" % regs[i][j])
-                    k += 1
-                j += 1
-            i += 1
-        if not found:
+        if found:
+            found = False
             i = 0
             while i < len(regs):
                 j = 0
@@ -366,7 +420,23 @@ class Tester:
                             if regs_found[k]:
                                 found = self.test_op(file, "cond2 --reg-dst %s --reg-src %s" % (regs[i][j], regs[i][k]))
                                 if found:
-                                    print("Conditional jump: (ropchain)")
+                                    print("Contidional jump (second task):")
+                                    print("\tthen esp + %s" % regs[i][j])
+                        k += 1
+                    j += 1
+                i += 1
+        else:
+            i = 0
+            while i < len(regs):
+                j = 0
+                while j < len(regs[i]):
+                    k = 0
+                    while k < len(regs[i]) and not found:
+                        if j != k:
+                            if regs_found[k]:
+                                found = self.test_op(file, "cond2 --reg-dst %s --reg-src %s --ropchain" % (regs[i][j], regs[i][k]))
+                                if found:
+                                    print("Contidional jump (second task): (ropchain)")
                                     print("\tthen esp + %s" % regs[i][j])
                         k += 1
                     j += 1
@@ -374,24 +444,10 @@ class Tester:
         return found
 
     def move(self, file, regs_found):
-        found = False
-        i = 0
+        found = self.test_op(file, "move")
         regs = REGISTERS[self.__mode:]
-        while i < len(regs):
-            j = 0
-            while j < len(regs[i]):
-                k = 0
-                while k < len(regs[i]) and not found:
-                    if j != k:
-                        if regs_found[k]:
-                            found = self.test_op(file, "move --reg-dst %s --reg-src %s" % (regs[i][j], regs[i][k]))
-                            if found:
-                                print("Move:")
-                                print("\t%s <- %s" % (regs[i][j], regs[i][k]))
-                    k += 1
-                j += 1
-            i += 1
-        if not found:
+        if found:
+            found = False
             i = 0
             while i < len(regs):
                 j = 0
@@ -401,6 +457,22 @@ class Tester:
                         if j != k:
                             if regs_found[k]:
                                 found = self.test_op(file, "move --reg-dst %s --reg-src %s" % (regs[i][j], regs[i][k]))
+                                if found:
+                                    print("Move:")
+                                    print("\t%s <- %s" % (regs[i][j], regs[i][k]))
+                        k += 1
+                    j += 1
+                i += 1
+        else:
+            i = 0
+            while i < len(regs):
+                j = 0
+                while j < len(regs[i]):
+                    k = 0
+                    while k < len(regs[i]) and not found:
+                        if j != k:
+                            if regs_found[k]:
+                                found = self.test_op(file, "move --reg-dst %s --reg-src %s --ropchain" % (regs[i][j], regs[i][k]))
                                 if found:
                                     print("Move: (ropchain)")
                                     print("\t%s <- %s" % (regs[i][j], regs[i][k]))
@@ -440,33 +512,15 @@ class Tester:
                 break
         return dlls
 
-    def get_directories(self, dlls):
-        directories = []
-        windir = os.environ['windir']
-
-        for dll in dlls:
-            value = dll[VALUE_DATA]
-            if "%SystemRoot%" in value:
-                dll_path = value.replace("%SystemRoot%", windir)
-            else:
-                dll_path = windir + value
-            if os.path.isdir(dll_path):
-                directories += [dll]
-        return directories
-
-    def get_absolute_paths(self, dirs, dlls):
+    def get_absolute_paths(self, dlls):
         dlls_paths = []
         windir = os.environ['windir']
+        system32 = "\system32\\"
 
-        for d in dirs:
-            for dll in dlls:
-                value = d[VALUE_DATA]
-                if "%SystemRoot%" in value:
-                    path = value.replace("%SystemRoot%", windir)
-                else:
-                    path = windir + value
-                dll_path = path + '\\' + dll[VALUE_DATA]
+        for dll in dlls:
+            if dll[VALUE_DATA].lower() in DLLS:
+                dll_path = windir + system32 + dll[VALUE_DATA]
                 if os.path.isfile(dll_path):
-                    print(dll_path)
                     dlls_paths += [dll_path]
+
         return dlls_paths

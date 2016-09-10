@@ -4,7 +4,6 @@ from easyrop.parsers.parser import Parser
 from easyrop.version import *
 
 
-
 class Args:
     def __init__(self, arguments):
         self.__args = None
@@ -26,8 +25,9 @@ class Args:
         parser.add_argument("--ropchain", action="store_true", help="Enables ropchain generation to search for operation")
         parser.add_argument("--nojop", action="store_true", help="Disables JOP gadgets")
         parser.add_argument("--noretf", action="store_true", help="Disables gadgets terminated in a far return (retf)")
-        parser.add_argument("--test", action="store_true", help="Analyze KnownDLLs of the computer to test viability of an attack (it takes time: ~15 min)")
+        parser.add_argument("--test-os", action="store_true", help="Analyze KnownDLLs of the computer to test viability of an attack (it takes long time)")
         parser.add_argument("--test-binary", type=str, metavar="<path>", help="Analyze a binary to test viability of an attack")
+        parser.add_argument("--ropattack", type=str, metavar="<path>", help="Generate ROP attack from file")
 
         self.__args = parser.parse_args(arguments)
         self.check_args()
@@ -37,7 +37,7 @@ class Args:
             self.print_version()
             sys.exit(0)
 
-        elif not (self.__args.test or self.__args.test_binary):
+        elif not (self.__args.test_os or self.__args.test_binary):
             if not self.__args.binary:
                 print("[Error] Need a binary/folder filename (--binary or --help)")
                 sys.exit(-1)

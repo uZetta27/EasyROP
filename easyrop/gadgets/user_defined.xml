@@ -28,4 +28,12 @@
             </ins>
         </set>
     </operation>
+    <operation name="adc">
+        <set>
+            <ins mnemonic="adc">
+                <reg1>dst</reg1>
+                <reg2>src</reg2>
+            </ins>
+        </set>
+    </operation>
 </operations>

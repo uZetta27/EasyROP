@@ -375,3 +375,58 @@ class Core:
                 continue
             new += [gadget]
         return new
+
+    def get_all_dsts(self, op, gadgets):
+        dst = set()
+        binary = Binary(self.__options.binary)
+        parser = Parser(op)
+        arch = binary.get_arch()
+        mode = binary.get_arch_mode()
+        md = Cs(arch, mode)
+        md.detail = True
+        operation = parser.get_operation()
+        sets = operation.get_sets()
+        for gadget in gadgets:
+            for s in sets:
+                decodes = md.disasm(gadget["gadget"]["bytes"], gadget["gadget"]["vaddr"])
+                for decode, ins in zip(decodes, s.get_instructions()):
+                    if decode.mnemonic == ins.get_mnemonic():
+                        reg = None
+                        if ins.is_dst(REG1):
+                            reg = self.get_register(decode, REG1)
+                        elif ins.is_dst(REG2):
+                            reg = self.get_register(decode, REG2)
+                        elif ins.is_dst_address(REG1):
+                            reg = self.get_reg_base(decode, REG1)
+                        elif ins.is_dst_address(REG2):
+                            reg = self.get_reg_base(decode, REG2)
+                        if reg:
+                            dst.add(reg)
+        return list(dst)
+
+    def get_all_srcs(self, op, gadgets):
+        src = set()
+        binary = Binary(self.__options.binary)
+        parser = Parser(op)
+        arch = binary.get_arch()
+        mode = binary.get_arch_mode()
+        md = Cs(arch, mode)
+        md.detail = True
+        operation = parser.get_operation()
+        sets = operation.get_sets()
+        for gadget in gadgets:
+            for s in sets:
+                decodes = md.disasm(gadget["gadget"]["bytes"], gadget["gadget"]["vaddr"])
+                for decode, ins in zip(decodes, s.get_instructions()):
+                    reg = None
+                    if ins.is_src(REG1):
+                        reg = self.get_register(decode, REG1)
+                    elif ins.is_src(REG2):
+                        reg = self.get_register(decode, REG2)
+                    elif ins.is_src_address(REG1):
+                        reg = self.get_reg_base(decode, REG1)
+                    elif ins.is_src_address(REG2):
+                        reg = self.get_reg_base(decode, REG2)
+                    if reg:
+                        src.add(reg)
+        return list(src)

@@ -89,7 +89,7 @@ class RopGenerator:
         return regs
 
     def ops_combinations(self, ops, regs):
-        combinations = []
+        combinations = {"gadgets": [], "ropchains": []}
         for operation in ops:
             op, dst, src = self.parse_op(operation)
             if (dst is not None) and (src is not None):
@@ -121,8 +121,12 @@ class RopGenerator:
     def update_combinations(self, argv, combinations, operation):
         args, core = self.make_core(argv)
         gadgets = core.search_operation(self.__gadgets, args.op, args.reg_src, args.reg_dst)
-        if len(gadgets) != 0:
-            combinations += [{operation: self.best_gadget(gadgets)}]
+        if len(gadgets) == 0:
+            ropchains = core.search_ropchains(self.__gadgets, args.op, args.reg_src, args.reg_dst)
+            if len(ropchains) != 0:
+                combinations["ropchains"] += [{operation: self.best_ropchain(ropchains)}]
+        else:
+            combinations["gadgets"] += [{operation: self.best_gadget(gadgets)}]
         return combinations
 
     def make_core(self, argv):
@@ -216,10 +220,10 @@ class RopGenerator:
         return args_string
 
     def print_ropchain(self, ropchain):
-        print("---- ropchain ----")
+        print("\t--------------- ropchain ---------------")
         for gadget in ropchain:
             self.print_gadget(gadget)
-        print("------------------")
+        print("\t----------------------------------------")
 
     def print_gadget(self, gadget):
         print("\t0x%x : %s %s" % (gadget["gadget"]["vaddr"], gadget["gadget"]["gadget"], gadget["values"]))
@@ -227,6 +231,9 @@ class RopGenerator:
     def print_combinations(self, ops, combinations):
         for operation in ops:
             print(operation)
-            for comb in combinations:
+            for comb in combinations["gadgets"]:
                 if operation in comb:
                     self.print_gadget(comb[operation])
+            for comb in combinations["ropchains"]:
+                if operation in comb:
+                    self.print_ropchain(comb[operation])

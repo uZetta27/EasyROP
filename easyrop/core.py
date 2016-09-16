@@ -94,66 +94,76 @@ class Core:
         return ret
 
     def search_operation(self, gadgets, op, src, dst):
-        binary = Binary(self.__options.binary)
         ret = []
-        parser = Parser(op)
-        arch = binary.get_arch()
-        mode = binary.get_arch_mode()
-        md = Cs(arch, mode)
-        md.detail = True
-        operation = parser.get_operation()
-        if ((operation.need_src() and src) or (operation.need_dst() and dst)) and\
-                not ((operation.need_src() and not src) or (operation.need_dst() and not dst)):
+        md, operation, parser = self.get_operation(op)
+        if self.has_all_operands(operation, dst, src):
             operation.set_dst(dst)
             operation.set_src(src)
             sets = operation.get_sets()
             for s in sets:
                 if s.need_aux():
-                    for gadget in gadgets:
-                        _aux = None
-                        decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
-                        for decode, ins in zip(decodes, s.get_instructions()):
-                            if decode.mnemonic == ins.get_mnemonic():
-                                if len(decode.operands) > 0:
-                                    _aux = self.get_set_aux(_aux, decode, ins)
-                            else:
-                                break
-                        else:
-                            saux = copy.deepcopy(s)
-                            saux.set_aux(_aux)
-                            decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
-                            same, values = self.same_gadget_set(decodes, saux)
-                            if same:
-                                ret += [{"gadget": gadget, "values": values}]
+                    ret = self.search_set_with_aux(ret, gadgets, md, s)
                 else:
-                    for gadget in gadgets:
-                        decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
-                        same, values = self.same_gadget_set(decodes, s)
-                        if same:
-                            ret += [{"gadget": gadget, "values": values}]
+                    ret = self.search_set(ret, gadgets, md, s)
         else:
-            for gadget in gadgets:
-                operation = parser.get_operation()
-                sets = operation.get_sets()
-                for s in sets:
-                    _dst = dst
-                    _src = src
-                    _aux = None
-                    decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
-                    for decode, ins in zip(decodes, s.get_instructions()):
-                        if decode.mnemonic == ins.get_mnemonic():
-                            if len(decode.operands) > 0:
-                                _aux, _dst, _src = self.get_operands_set(_aux, _dst, _src, decode, ins)
-                        else:
-                            break
+            ret = self.search_generic_set(ret, dst, src, md, gadgets, parser)
+        return ret
+
+    def has_all_operands(self, operation, dst, src):
+        result = ((operation.need_src() and src) or (operation.need_dst() and dst)) and \
+                not ((operation.need_src() and not src) or (operation.need_dst() and not dst))
+        return result
+
+    def search_generic_set(self, ret, dst, src, md, gadgets, parser):
+        for gadget in gadgets:
+            operation = parser.get_operation()
+            sets = operation.get_sets()
+            for s in sets:
+                _dst = dst
+                _src = src
+                _aux = None
+                decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
+                for decode, ins in zip(decodes, s.get_instructions()):
+                    if decode.mnemonic == ins.get_mnemonic():
+                        if len(decode.operands) > 0:
+                            _aux, _dst, _src = self.get_operands_set(_aux, _dst, _src, decode, ins)
                     else:
-                        s.set_dst(_dst)
-                        s.set_src(_src)
-                        s.set_aux(_aux)
-                        decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
-                        same, values = self.same_gadget_set(decodes, s)
-                        if same:
-                            ret += [{"gadget": gadget, "values": values}]
+                        break
+                else:
+                    s.set_dst(_dst)
+                    s.set_src(_src)
+                    s.set_aux(_aux)
+                    decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
+                    same, values = self.same_gadget_set(decodes, s)
+                    if same:
+                        ret += [{"gadget": gadget, "values": values}]
+        return ret
+
+    def search_set(self, ret, gadgets, md, s):
+        for gadget in gadgets:
+            decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
+            same, values = self.same_gadget_set(decodes, s)
+            if same:
+                ret += [{"gadget": gadget, "values": values}]
+        return ret
+
+    def search_set_with_aux(self, ret, gadgets, md, s):
+        for gadget in gadgets:
+            _aux = None
+            decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
+            for decode, ins in zip(decodes, s.get_instructions()):
+                if decode.mnemonic == ins.get_mnemonic():
+                    if len(decode.operands) > 0:
+                        _aux = self.get_set_aux(_aux, decode, ins)
+                else:
+                    break
+            else:
+                saux = copy.deepcopy(s)
+                saux.set_aux(_aux)
+                decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
+                same, values = self.same_gadget_set(decodes, saux)
+                if same:
+                    ret += [{"gadget": gadget, "values": values}]
         return ret
 
     def get_operands_set(self, _aux, _dst, _src, decode, ins):
@@ -204,7 +214,6 @@ class Core:
             values += v
         else:
             return True, values
-
         return False, values
 
     def same_gadget_ins(self, decode, ins):
@@ -235,17 +244,10 @@ class Core:
         return same, values
 
     def search_ropchains(self, gadgets, op, src, dst):
-        binary = Binary(self.__options.binary)
-        gadgets = self.lenght_sortgadgets(gadgets)
-        arch = binary.get_arch()
-        mode = binary.get_arch_mode()
-        md = Cs(arch, mode)
-        md.detail = True
-        parser = Parser(op)
         ret = []
-        operation = parser.get_operation()
-        if ((operation.need_src() and src) or (operation.need_dst() and dst)) and \
-                not ((operation.need_src() and not src) or (operation.need_dst() and not dst)):
+        gadgets = self.lenght_sortgadgets(gadgets)
+        md, operation, parser = self.get_operation(op)
+        if self.has_all_operands(operation, dst, src):
             operation.set_dst(dst)
             operation.set_src(src)
             sets = operation.get_sets()
@@ -253,53 +255,58 @@ class Core:
                 if len(s) > 1:
                     chain = []
                     if s.need_aux():
-                        i = 0
-                        j = 0
-                        _aux = None
-                        searched_aux = []
-                        while (j < len(gadgets)) and (i < len(s)):
-                            decodes = md.disasm(gadgets[j]["bytes"], gadgets[j]["vaddr"])
-                            decode = next(decodes)
-                            ins = s.get_instructions()[i]
-                            if decode.mnemonic == ins.get_mnemonic():
-                                if len(decode.operands) > 0:
-                                    temp = self.get_set_aux(_aux, decode, ins)
-                                    if temp not in searched_aux:
-                                        _aux = temp
-                                        saux = copy.deepcopy(s)
-                                        saux.set_aux(_aux)
-                                        decodes = md.disasm(gadgets[j]["bytes"], gadgets[j]["vaddr"])
-                                        same, values = self.same_gadget_ins(next(decodes), saux.get_instructions()[i])
-                                        if same:
-                                            chain += [{"gadget": gadgets[j], "values": values}]
-                                            i += 1
-                                            j = -1
-                                else:
-                                    chain += [{"gadget": gadgets[j], "values": ''}]
-                                    i += 1
-                                    j = -1
-                            j += 1
-                            if j == len(gadgets):
-                                if _aux is not None:
-                                    i = 0
-                                    j = 0
-                                    searched_aux += [_aux]
-                                    _aux = None
-                                    chain = []
+                        chain = self.search_set_with_aux_ropchain(chain, gadgets, md, s)
                     else:
-                        for ins in s.get_instructions():
-                            for gadget in gadgets:
-                                decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
-                                same, values = self.same_gadget_ins(next(decodes), ins)
-                                if same:
-                                    chain += [{"gadget": gadget, "values": values}]
-                                    break
+                        chain = self.searh_set_ropchain(chain, gadgets, md, s)
                     if len(s) == len(chain):
                         ret += [chain]
         return ret
 
-    def get_string(self, decode):
-        return ("%s %s" % (decode.mnemonic, decode.op_str)).replace("  ", " ")
+    def search_set_with_aux_ropchain(self, chain, gadgets, md, s):
+        i = 0
+        j = 0
+        _aux = None
+        searched_aux = []
+        while (j < len(gadgets)) and (i < len(s)):
+            decodes = md.disasm(gadgets[j]["bytes"], gadgets[j]["vaddr"])
+            decode = next(decodes)
+            ins = s.get_instructions()[i]
+            if decode.mnemonic == ins.get_mnemonic():
+                if len(decode.operands) > 0:
+                    temp = self.get_set_aux(_aux, decode, ins)
+                    if temp not in searched_aux:
+                        _aux = temp
+                        saux = copy.deepcopy(s)
+                        saux.set_aux(_aux)
+                        decodes = md.disasm(gadgets[j]["bytes"], gadgets[j]["vaddr"])
+                        same, values = self.same_gadget_ins(next(decodes), saux.get_instructions()[i])
+                        if same:
+                            chain += [{"gadget": gadgets[j], "values": values}]
+                            i += 1
+                            j = -1
+                else:
+                    chain += [{"gadget": gadgets[j], "values": ''}]
+                    i += 1
+                    j = -1
+            j += 1
+            if j == len(gadgets):
+                if _aux is not None:
+                    i = 0
+                    j = 0
+                    searched_aux += [_aux]
+                    _aux = None
+                    chain = []
+        return chain
+
+    def searh_set_ropchain(self, chain, gadgets, md, s):
+        for ins in s.get_instructions():
+            for gadget in gadgets:
+                decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
+                same, values = self.same_gadget_ins(next(decodes), ins)
+                if same:
+                    chain += [{"gadget": gadget, "values": values}]
+                    break
+        return chain
 
     def get_register(self, decode, position):
         reg = None
@@ -378,14 +385,7 @@ class Core:
 
     def get_all_dsts(self, op, gadgets):
         dst = set()
-        binary = Binary(self.__options.binary)
-        parser = Parser(op)
-        arch = binary.get_arch()
-        mode = binary.get_arch_mode()
-        md = Cs(arch, mode)
-        md.detail = True
-        operation = parser.get_operation()
-        sets = operation.get_sets()
+        md, sets = self.get_sets(op)
         for gadget in gadgets:
             for s in sets:
                 decodes = md.disasm(gadget["gadget"]["bytes"], gadget["gadget"]["vaddr"])
@@ -406,14 +406,7 @@ class Core:
 
     def get_all_srcs(self, op, gadgets):
         src = set()
-        binary = Binary(self.__options.binary)
-        parser = Parser(op)
-        arch = binary.get_arch()
-        mode = binary.get_arch_mode()
-        md = Cs(arch, mode)
-        md.detail = True
-        operation = parser.get_operation()
-        sets = operation.get_sets()
+        md, sets = self.get_sets(op)
         for gadget in gadgets:
             for s in sets:
                 decodes = md.disasm(gadget["gadget"]["bytes"], gadget["gadget"]["vaddr"])
@@ -430,3 +423,18 @@ class Core:
                     if reg:
                         src.add(reg)
         return list(src)
+
+    def get_operation(self, op):
+        binary = Binary(self.__options.binary)
+        parser = Parser(op)
+        arch = binary.get_arch()
+        mode = binary.get_arch_mode()
+        md = Cs(arch, mode)
+        md.detail = True
+        operation = parser.get_operation()
+        return md, operation, parser
+
+    def get_sets(self, op):
+        md, operation, parser = self.get_operation(op)
+        sets = operation.get_sets()
+        return md, sets

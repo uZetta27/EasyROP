@@ -27,12 +27,12 @@ class RopGenerator:
         print('\nTime elapsed: %s' % str(end))
 
     def search_ops(self, ops):
+        self.all_gadgets()
         regs = self.potential_regs_combination(ops)
         combinations = self.ops_combinations(ops, regs)
         self.print_combinations(ops, combinations)
 
     def potential_regs_combination(self, ops):
-        self.all_gadgets()
         regs = {}
         searched_dsts = []
         searched_srcs = []
@@ -48,103 +48,98 @@ class RopGenerator:
                         argv += " --reg-dst %s" % dst2
                     if src2 in REGISTERS:
                         argv += " --reg-src %s" % src2
-                    argv_split = argv.split()
-                    args = Args(argv_split).get_args()
-                    core = Core(args)
+                    args, core = self.make_core(argv)
                     gadgets = core.search_operation(self.__gadgets, args.op, args.reg_src, args.reg_dst)
                     if (dst is not None) and (dst == dst2):
                         searched_dsts += [dst]
-                        if len(gadgets) == 0:
-                            ropchains = core.search_ropchains(self.__gadgets, args.op, args.reg_src, args.reg_dst)
-                            if len(ropchains) != 0:
-                                if dst not in regs:
-                                    regs.update({dst: []})
-                                regs.update({dst: self.common_dsts(core, regs[dst], gadgets, op2)})
-                        else:
-                            if dst not in REGISTERS:
-                                if dst not in regs:
-                                    regs.update({dst: []})
-                                regs.update({dst: self.common_dsts(core, regs[dst], gadgets, op2)})
+                        regs = self.search_dsts(args, core, gadgets, regs, op2, dst)
                     if (src is not None) and (src == src2):
                         searched_srcs += [src]
-                        if len(gadgets) == 0:
-                            ropchains = core.search_ropchains(self.__gadgets, args.op, args.reg_src, args.reg_dst)
-                            if len(ropchains) == 0:
-                                print("\tNot found!")
-                            else:
-                                self.print_ropchain(self.get_best_ropchain(ropchains))
-                        else:
-                            if src not in REGISTERS:
-                                if src not in regs:
-                                    regs.update({src: []})
-                                regs.update({src: self.common_srcs(core, regs[src], gadgets, op2)})
+                        regs = self.search_srcs(args, core, gadgets, regs, op2, src)
                     j += 1
             i += 1
+        return regs
+
+    def search_dsts(self, args, core, gadgets, regs, op, dst):
+        if len(gadgets) == 0:
+            ropchains = core.search_ropchains(self.__gadgets, args.op, args.reg_src, args.reg_dst)
+            if len(ropchains) != 0:
+                if dst not in regs:
+                    regs.update({dst: []})
+                regs.update({dst: self.common_dsts(core, regs[dst], gadgets, op)})
+        else:
+            if dst not in REGISTERS:
+                if dst not in regs:
+                    regs.update({dst: []})
+                regs.update({dst: self.common_dsts(core, regs[dst], gadgets, op)})
+        return regs
+
+    def search_srcs(self, args, core, gadgets, regs, op, src):
+        if len(gadgets) == 0:
+            ropchains = core.search_ropchains(self.__gadgets, args.op, args.reg_src, args.reg_dst)
+            if len(ropchains) != 0:
+                if src not in regs:
+                    regs.update({src: []})
+                regs.update({src: self.common_srcs(core, regs[src], gadgets, op)})
+        else:
+            if src not in REGISTERS:
+                if src not in regs:
+                    regs.update({src: []})
+                regs.update({src: self.common_srcs(core, regs[src], gadgets, op)})
         return regs
 
     def ops_combinations(self, ops, regs):
         combinations = []
         for operation in ops:
             op, dst, src = self.parse_op(operation)
-            destination = []
-            source = []
             if (dst is not None) and (src is not None):
-                if dst in REGISTERS:
-                    destination = [dst]
-                else:
-                    for reg in regs:
-                        if reg == dst:
-                            destination = regs[reg]
-                if src in REGISTERS:
-                    source = [src]
-                else:
-                    for reg in regs:
-                        if reg == src:
-                            source = regs[reg]
+                destination = self.registers(dst, regs)
+                source = self.registers(src, regs)
                 for d in destination:
                     for s in source:
                         argv = ('--binary %s --op %s' % (self.__binary, op))
                         argv += " --reg-dst %s" % d
                         argv += " --reg-src %s" % s
-                        argv_split = argv.split()
-                        args = Args(argv_split).get_args()
-                        core = Core(args)
-                        gadgets = core.search_operation(self.__gadgets, args.op, args.reg_src, args.reg_dst)
-                        if len(gadgets) != 0:
-                            combinations += [{operation: self.get_best_gadget(gadgets)}]
+                        combinations = self.update_combinations(argv, combinations, operation)
             elif dst is not None:
-                if dst in REGISTERS:
-                    destination = [dst]
-                else:
-                    for reg in regs:
-                        if reg == dst:
-                            destination = regs[reg]
+                destination = self.registers(dst, regs)
                 for d in destination:
                     argv = ('--binary %s --op %s' % (self.__binary, op))
                     argv += " --reg-dst %s" % d
-                    argv_split = argv.split()
-                    args = Args(argv_split).get_args()
-                    core = Core(args)
-                    gadgets = core.search_operation(self.__gadgets, args.op, args.reg_src, args.reg_dst)
-                    if len(gadgets) != 0:
-                        combinations += [{operation: self.get_best_gadget(gadgets)}]
+                    combinations = self.update_combinations(argv, combinations, operation)
             elif src is not None:
-                if src in REGISTERS:
-                    source = [src]
-                else:
-                    for reg in regs:
-                        if reg == src:
-                            source = regs[reg]
+                source = self.registers(src, regs)
                 for s in source:
                     argv = ('--binary %s --op %s' % (self.__binary, op))
                     argv += " --reg-src %s" % s
-                    argv_split = argv.split()
-                    args = Args(argv_split).get_args()
-                    core = Core(args)
-                    gadgets = core.search_operation(self.__gadgets, args.op, args.reg_src, args.reg_dst)
-                    if len(gadgets) != 0:
-                        combinations += [{operation: self.get_best_gadget(gadgets)}]
+                    combinations = self.update_combinations(argv, combinations, operation)
+            elif (dst is None) and (src is None):
+                argv = ('--binary %s --op %s' % (self.__binary, op))
+                combinations = self.update_combinations(argv, combinations, operation)
         return combinations
+
+    def update_combinations(self, argv, combinations, operation):
+        args, core = self.make_core(argv)
+        gadgets = core.search_operation(self.__gadgets, args.op, args.reg_src, args.reg_dst)
+        if len(gadgets) != 0:
+            combinations += [{operation: self.best_gadget(gadgets)}]
+        return combinations
+
+    def make_core(self, argv):
+        argv_split = argv.split()
+        args = Args(argv_split).get_args()
+        core = Core(args)
+        return args, core
+
+    def registers(self, reg, regs):
+        ret = []
+        if reg in REGISTERS:
+            ret = [reg]
+        else:
+            for r in regs:
+                if reg == r:
+                    ret = regs[r]
+        return ret
 
     def common_dsts(self, core, dsts, gadgets, op):
         if len(dsts) == 0:
@@ -159,17 +154,17 @@ class RopGenerator:
             return list(set(srcs).intersection(core.get_all_srcs(op, gadgets)))
 
     def all_gadgets(self):
-        argv = ('--binary %s %s' % (self.__binary, self.get_args_string()))
+        argv = ('--binary %s %s' % (self.__binary, self.args_string()))
         argv = argv.split()
         args = Args(argv).get_args()
         core = Core(args)
         self.__gadgets = core.analyze(True)
         self.__gadgets = core.pass_clean(self.__gadgets)
 
-    def get_best_gadget(self, gadgets):
+    def best_gadget(self, gadgets):
         return sorted(gadgets, key=lambda gadget: len(gadget["gadget"]["bytes"]))[0]
 
-    def get_best_ropchain(self, ropchains):
+    def best_ropchain(self, ropchains):
         return sorted(ropchains, key=lambda chain: self.lenght_chain(chain))[0]
 
     def lenght_chain(self, chain):
@@ -180,12 +175,10 @@ class RopGenerator:
 
     def read_file(self):
         try:
-            ops = [line.rstrip('\n') for line in open(self.__rop_file)]
+            return [line.rstrip('\n') for line in open(self.__rop_file)]
         except:
             print("[Error] Bad file %s" % self.__rop_file)
             sys.exit(-1)
-
-        return ops
 
     def parse_op(self, op):
         dst = None
@@ -195,7 +188,6 @@ class RopGenerator:
         operands = partition[2].replace(')', '')
         if len(operands) != 0:
             dst, src = self.parse_operands(operands)
-
         return op, dst, src
 
     def parse_operands(self, operands):
@@ -208,10 +200,9 @@ class RopGenerator:
         elif len(operands) == 2:
             dst = operands[0]
             src = operands[1]
-
         return dst, src
 
-    def get_args_string(self):
+    def args_string(self):
         args_string = ""
         args = Args(sys.argv[1:]).get_args()
         if args.depth != 5:
@@ -222,7 +213,6 @@ class RopGenerator:
             args_string += " --nojop"
         if args.noretf:
             args_string += " --noretf"
-
         return args_string
 
     def print_ropchain(self, ropchain):

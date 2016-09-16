@@ -36,4 +36,9 @@
             </ins>
         </set>
     </operation>
+    <operation name="clc">
+        <set>
+            <ins mnemonic="clc" />
+        </set>
+    </operation>
 </operations>

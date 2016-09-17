@@ -7,11 +7,11 @@ def main():
 
     args = Args(sys.argv[1:]).get_args()
 
-    if args.test_binary:
-        Tester().test_binary(args.test_binary)
+    if args.ropattack:
+        RopGenerator(args.binary, args.ropattack).generate()
     elif args.test_os:
         Tester().test()
-    elif args.ropattack:
-        RopGenerator(args.binary, args.ropattack).generate()
+    elif args.test_binary:
+        Tester().test_binary(args.test_binary)
     else:
         sys.exit(Core(args).analyze())

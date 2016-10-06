@@ -89,10 +89,10 @@ El fichero XML permite establecer en cada registro de una instrucción los sigui
 * [src]: dirección de fuente alojada en un registro
 * {eax, ebx, ecx...}: registro específico de propósito general
 * {[eax, ebx, ecx...]}: dirección alojada en un registro específico de propósito general
-* <reg{1,2} value ="0xFFFFFFFF">: valor obligatorio del registro
+* &lt;reg{1,2} value ="0xFFFFFFFF">: valor obligatorio del registro
 
 ### Automatizar la creación de ataques ROP
-Mediante la opción --ropattack <path> se puede especificar un fichero de texto plano en el que se especifique un ataque ROP a través de las operaciones definidas en el XML. Un ejemplo de automatización es el siguiente:
+Mediante la opción --ropattack &lt;path> se puede especificar un fichero de texto plano en el que se especifique un ataque ROP a través de las operaciones definidas en el XML. Un ejemplo de automatización es el siguiente:
 ```
 lc(reg1)
 lc(reg2)

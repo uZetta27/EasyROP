@@ -1,15 +1,15 @@
 # EasyROP
-Esta herramienta en Python permite buscar gadgets, operaciones formadas por gadgets; y generar ROP chains en binarios Portable Executable (PE). EasyROP se basa en el desensamblador Capstone para la búsqueda de gadgets.
+This Python tool allows you to search gadgets, operations formed by gadgets and generate automatic ROP chains in Portable Executable (PE). EasyROP is based in Capstone Disassembly Framework to search gadgets.
 
-### Instalación
-EasyROP necesita la instalación de [Capstone](http://www.capstone-engine.org/download.html) y [pefile](https://pypi.python.org/pypi/pefile/).
+### Install
+EasyROP needs [Capstone](http://www.capstone-engine.org/download.html) and [pefile](https://pypi.python.org/pypi/pefile/) installation.
 
-Una vez resueltas sus dependencias, EasyROP se puede utilizar mediante:
+Once you solve this depencies, EasyROP can be used as:
 ```
 $ python EasyROP.py
 ```
 
-### Uso
+### Use
 ```
 usage: EasyROP.py [-h] [-v] [--binary <path>] [--depth <bytes>] [--all]
                   [--op <op>] [--reg-src <reg>] [--reg-dst <reg>] [--ropchain]
@@ -35,8 +35,8 @@ optional arguments:
   --ropattack <path>    Generate ROP attack from file
 ```
 
-### Operaciones
-Las operaciones son operaciones de alto nivel creadas mediante conjuntos de gadgets. Un ejemplo de dos conjuntos para realizar la operación de mover un valor de un registro a otro sería:
+### Operations
+This operations are high level operations built by gadgets. The following is an example to move a value from one register to another:
 ```
 xchg dst, src
 ```
@@ -45,8 +45,8 @@ xor dst, dst
 add dst, src
 ```
 
-### Especificación de operaciones
-Siguiendo la estructura del siguiente DTD se puede realizar la especifiación de operaciones propias mediante XML:
+### Specification of operations
+Following the next DTD you can specify your own operations through a XML file:
 ```
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE operations [
@@ -80,19 +80,19 @@ Siguiendo la estructura del siguiente DTD se puede realizar la especifiación de
     </operation>
 </operations>
 ```
-El fichero XML permite establecer en cada registro de una instrucción los siguiente valores:
+This XML structure allows you to define register value of each instruction:
 
-* dst: registro destino
-* src: registro fuente
-* aux: registro auxiliar (sólo se puede especificar uno por conjunto o set)
-* [dst]: dirección de destino alojada en un registro
-* [src]: dirección de fuente alojada en un registro
-* {eax, ebx, ecx...}: registro específico de propósito general
-* {[eax, ebx, ecx...]}: dirección alojada en un registro específico de propósito general
-* &lt;reg{1,2} value ="0xFFFFFFFF">: valor obligatorio del registro
+* dst: destination register
+* src: source register
+* aux: auxiliary register (only one by set)
+* [dst]: destination direction allocated in a register
+* [src]: source direction allocated in a register
+* {eax, ebx, ecx...}: specific register
+* {[eax, ebx, ecx...]}: direction allocated in a specific register
+* &lt;reg{1,2} value ="0xFFFFFFFF">: mandatory value of register
 
-### Automatizar la creación de ataques ROP
-Mediante la opción --ropattack &lt;path> se puede especificar un fichero de texto plano en el que se especifique un ataque ROP a través de las operaciones definidas en el XML. Un ejemplo de automatización es el siguiente:
+### Automatic ROP chains generation
+Through the --ropattack &lt;path> option you can specify in a plaintex file a ROP attack composed by operations defined in the XML. An example:
 ```
 lc(reg1)
 lc(reg2)
@@ -101,5 +101,5 @@ lc(reg3)
 store(reg3, reg2)
 ```
 
-### Licencia
-La herramienta está publicada bajo la licencia GNU GPLv3, se puede acceder a la licencia en los ficheros fuente.
+### License
+This tool is published under the GNU GPLv3 license.

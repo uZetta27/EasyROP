@@ -8,7 +8,7 @@ from easyrop.operation import Operation
 from easyrop.set import Set
 from easyrop.instruction import Instruction
 
-GADGET_DIRECTORY = '\easyrop\gadgets'
+GADGET_DIRECTORY = os.sep + 'easyrop' + os.sep + 'gadgets'
 
 OPERATION = 'operation'
 NAME = 'name'
@@ -34,7 +34,7 @@ class XmlParser:
         i = 0
         file = None
         while i < len(self.__files) and not found:
-            path = os.getcwd() + GADGET_DIRECTORY + '\\' + self.__files[i]
+            path = os.getcwd() + GADGET_DIRECTORY + os.sep + self.__files[i]
             file = xml.etree.ElementTree.parse(path).getroot()
             for operation in file.findall(OPERATION):
                 if op == operation.get(NAME):
@@ -45,7 +45,7 @@ class XmlParser:
     def get_all_ops(self):
         ops = []
         for file in self.__files:
-            path = os.getcwd() + GADGET_DIRECTORY + '\\' + file
+            path = os.getcwd() + GADGET_DIRECTORY + os.sep + file
             f = xml.etree.ElementTree.parse(path).getroot()
             for operation in f.findall(OPERATION):
                 ops += [operation.get(NAME)]

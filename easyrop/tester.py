@@ -1,11 +1,13 @@
 import datetime
 import os
-from winreg import *
+import sys
 from capstone import *
 from easyrop.args import Args
 from easyrop.binaries.binary import Binary
 from easyrop.core import Core
 
+if 'nt' in sys.builtin_module_names:
+    from winreg import *
 
 VALUE_NAME = 0
 VALUE_DATA = 1
@@ -32,13 +34,16 @@ class Tester:
         self.__mode = REG_64
 
     def test(self):
-        start = datetime.datetime.now()
-        dlls = self.get_dlls()
-        dlls_path = self.get_absolute_paths(dlls)
-        for d in dlls_path:
-            self.test_binary(d, True)
-        end = datetime.datetime.now() - start
-        print('\nTime elapsed: %s' % str(end))
+        if 'nt' in sys.builtin_module_names:
+            start = datetime.datetime.now()
+            dlls = self.get_dlls()
+            dlls_path = self.get_absolute_paths(dlls)
+            for d in dlls_path:
+                self.test_binary(d, True)
+            end = datetime.datetime.now() - start
+            print('\nTime elapsed: %s' % str(end))
+        else:
+            print('[Error] No Windows system')
 
     def test_binary(self, file, silent=False):
         start = datetime.datetime.now()
@@ -515,7 +520,7 @@ class Tester:
     def get_absolute_paths(self, dlls):
         dlls_paths = []
         windir = os.environ['windir']
-        system32 = "\system32\\"
+        system32 = os.sep + "system32" + os.sep
 
         for dll in dlls:
             if dll[VALUE_DATA].lower() in DLLS:

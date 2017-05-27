@@ -1,3 +1,7 @@
+"""
+Class with the main funcionality: it searchs gadgets in a binary, operations and ropchains
+"""
+
 import datetime
 import re
 from capstone import *

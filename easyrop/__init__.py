@@ -8,7 +8,7 @@ def main():
     args = Args(sys.argv[1:]).get_args()
 
     if args.ropattack:
-        RopGenerator(args.binary, args.ropattack).generate()
+        RopGenerator(args.binary, args.ropattack, args.ropchain, args.dlls).generate()
     elif args.test_os:
         Tester().test()
     elif args.test_binary:

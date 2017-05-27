@@ -97,9 +97,52 @@ Through the --ropattack &lt;path> option you can specify in a plaintex file a RO
 lc(reg1)
 lc(reg2)
 sub(reg2, reg1)
-lc(reg3)
-store(reg3, reg2)
+clear(reg3)
+move(reg3, reg2)
 ```
+
+Which results in the following output:
+ ```
+$ python EasyROP.py --ropattack rop.txt --binary C:\Windows\System32\kernel32.dll --nojop --noretf
+
+lc(reg1)
+        0x77e85f37 : pop edx ; pop eax ; ret
+        0x77e93018 : pop ecx ; leave ; ret 4
+        0x77e735e0 : pop esp ; ret 0xfffb
+        0x77e2922e : pop esi ; ret
+        0x77e5238b : pop edi ; ret
+        0x77e000ad : pop ebp ; ret
+lc(reg2)
+        0x77e93018 : pop ecx ; leave ; ret 4
+        0x77e735e0 : pop esp ; ret 0xfffb
+        0x77e5238b : pop edi ; ret
+        0x77e2e386 : pop ebx ; ret
+        0x77e78a2d : pop eax ; ret
+sub(reg2, reg1)
+        0x77e306a1 : sub ecx, edx ; mov dword ptr [edi], ecx ; ret
+        0x77e1fece : sub ecx, esi ; add byte ptr [eax], al ; ret 8
+        0x77e928ed : sub ecx, ebp ; ja 0x77e928d9 ; ret
+        0x77e69b50 : sub esp, edi ; dec ecx ; ret 0x14
+        0x77e699d2 : sub edi, esp ; dec ecx ; ret 0x14
+        0x77e1f2ce : sub ebx, edx ; add byte ptr [eax], al ; ret 4
+        0x77e1d2b1 : sub eax, ecx ; pop ebx ; pop ebp ; ret 8
+        0x77e3ec10 : sub eax, esi ; pop esi ; pop ebp ; ret 8
+clear(reg3)
+        0x77e8601b : xor al, al ; ret
+        0x77e0b823 : xor eax, eax ; ret
+        0x77e32aa7 : xor esi, esi ; ret 0x7520
+move(reg3, reg2)
+        0x77e3edb0 : mov eax, ecx ; ret
+        0x77e212c2 : xchg eax, esp ; ret
+        0x77e34c56 : xchg eax, edi ; add al, byte ptr [eax] ; leave ; ret
+        0x77e3c132 : mov eax, ebx ; pop ebx ; pop ebp ; ret
+        0x77e2243b : mov eax, eax ; ret
+
+Time elapsed: 0:02:27.470385
+ ```
 
 ### License
 This tool is published under the GNU GPLv3 license.
+
+### Thanks
+Special thanks to [ricardojrdez](https://github.com/ricardojrdez) for directing this project.

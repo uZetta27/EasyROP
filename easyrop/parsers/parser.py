@@ -1,5 +1,8 @@
-import sys
+"""
+Interface to implement to parse different sources of gadgets
+"""
 
+from easyrop.parsers.parse_exception import ParseException
 from easyrop.parsers.xml_parser import XmlParser
 
 
@@ -9,9 +12,8 @@ class Parser:
 
         try:
             self.__file = XmlParser(op)
-        except:
-            print("[Error] Can't read form gadget source")
-            sys.exit(-1)
+        except ParseException:
+            raise
 
     def get_all_ops(self):
         return self.__file.get_all_ops()

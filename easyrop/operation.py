@@ -1,3 +1,13 @@
+"""
+This class is a representation of an operation formed by sets. E.g:
+
+    operation = [set1, set2]
+
+    set1 = ["xor eax, eax" , "add ecx, eax"]
+    set2 = ["xchg eax. ecx"]
+"""
+
+
 class Operation:
     def __init__(self, name):
         self.__name = name

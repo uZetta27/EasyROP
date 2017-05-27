@@ -41,4 +41,12 @@
             <ins mnemonic="clc" />
         </set>
     </operation>
+    <operation name="clear">
+        <set>
+            <ins mnemonic="xor">
+                <reg1>dst</reg1>
+                <reg2>dst</reg2>
+            </ins>
+        </set>
+    </operation>
 </operations>

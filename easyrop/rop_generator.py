@@ -1,8 +1,9 @@
 import datetime
-import sys
 
+from easyrop.knowndlls import *
 from easyrop.args import Args
 from easyrop.core import Core
+
 
 REGISTERS = ["rax", "rbx", "rcx", "rdx",
              "eax", "ebx", "ecx", "edx", "esi", "edi", "ebp", "eip", "esp",
@@ -12,27 +13,53 @@ REGISTERS = ["rax", "rbx", "rcx", "rdx",
 
 
 class RopGenerator:
-    def __init__(self, binary, rop_file):
+    def __init__(self, binary, rop_file, ropchain, dlls):
         self.__gadgets = []
         self.__binary = binary
         self.__rop_file = rop_file
+        self.__enable_ropchain = ropchain
+        self.__enable_dlls = dlls
 
     def generate(self):
         start = datetime.datetime.now()
         ops = self.read_file()
         if ops:
-            self.search_ops(ops)
-        end = datetime.datetime.now() - start
-        # print time
-        print('\nTime elapsed: %s' % str(end))
+            if self.__enable_dlls:
+                self.search_ops_dlls(ops)
+            else:
+                self.search_ops(ops, self.__binary)
+            end = datetime.datetime.now() - start
+            # print time
+            print('\nTime elapsed: %s' % str(end))
 
-    def search_ops(self, ops):
-        self.all_gadgets()
-        regs = self.potential_regs_combination(ops)
-        combinations = self.ops_combinations(ops, regs)
+    def search_ops_dlls(self, ops):
+        knowndlls = KnownDlls()
+        dlls = knowndlls.get_dlls()
+        dlls_path = knowndlls.get_absolute_paths(dlls)
+        for dll in dlls_path:
+            print("Searhing in %s" % dll)
+            if self.search_ops(ops, dll):
+                break
+            print("Nothing found!")
+
+    def search_ops(self, ops, binary):
+        self.all_gadgets(binary)
+        regs = self.potential_regs_combination(ops, binary)
+        combinations = self.ops_combinations(ops, regs, binary)
+        ops_completed = self.all_combinations(combinations)
+        if len(ops_completed) != len(ops):
+            return False
         self.print_combinations(ops, combinations)
+        return True
 
-    def potential_regs_combination(self, ops):
+    def all_combinations(self, combinations):
+        op_list = set()
+        gadgets = combinations["gadgets"]
+        for gad in gadgets:
+            op_list.add(list(gad.keys())[0])
+        return op_list
+
+    def potential_regs_combination(self, ops, binary):
         regs = {}
         searched_dsts = []
         searched_srcs = []
@@ -43,7 +70,7 @@ class RopGenerator:
                 j = i
                 while j < len(ops):
                     op2, dst2, src2 = self.parse_op(ops[j])
-                    argv = ('--binary %s --op %s' % (self.__binary, op2))
+                    argv = ('--binary %s --op %s' % (binary, op2))
                     if dst2 in REGISTERS:
                         argv += " --reg-dst %s" % dst2
                     if src2 in REGISTERS:
@@ -61,7 +88,7 @@ class RopGenerator:
         return regs
 
     def search_dsts(self, args, core, gadgets, regs, op, dst):
-        if len(gadgets) == 0:
+        if len(gadgets) == 0 and self.__enable_ropchain:
             ropchains = core.search_ropchains(self.__gadgets, args.op, args.reg_src, args.reg_dst)
             if len(ropchains) != 0:
                 if dst not in regs:
@@ -75,20 +102,20 @@ class RopGenerator:
         return regs
 
     def search_srcs(self, args, core, gadgets, regs, op, src):
-        if len(gadgets) == 0:
+        if len(gadgets) == 0 and self.__enable_ropchain:
             ropchains = core.search_ropchains(self.__gadgets, args.op, args.reg_src, args.reg_dst)
             if len(ropchains) != 0:
                 if src not in regs:
                     regs.update({src: []})
                 regs.update({src: self.common_srcs(core, regs[src], gadgets, op)})
-        else:
+        elif len(gadgets) != 0:
             if src not in REGISTERS:
                 if src not in regs:
                     regs.update({src: []})
                 regs.update({src: self.common_srcs(core, regs[src], gadgets, op)})
         return regs
 
-    def ops_combinations(self, ops, regs):
+    def ops_combinations(self, ops, regs, binary):
         combinations = {"gadgets": [], "ropchains": []}
         for operation in ops:
             op, dst, src = self.parse_op(operation)
@@ -97,35 +124,35 @@ class RopGenerator:
                 source = self.registers(src, regs)
                 for d in destination:
                     for s in source:
-                        argv = ('--binary %s --op %s' % (self.__binary, op))
+                        argv = ('--binary %s --op %s' % (binary, op))
                         argv += " --reg-dst %s" % d
                         argv += " --reg-src %s" % s
                         combinations = self.update_combinations(argv, combinations, operation)
             elif dst is not None:
                 destination = self.registers(dst, regs)
                 for d in destination:
-                    argv = ('--binary %s --op %s' % (self.__binary, op))
+                    argv = ('--binary %s --op %s' % (binary, op))
                     argv += " --reg-dst %s" % d
                     combinations = self.update_combinations(argv, combinations, operation)
             elif src is not None:
                 source = self.registers(src, regs)
                 for s in source:
-                    argv = ('--binary %s --op %s' % (self.__binary, op))
+                    argv = ('--binary %s --op %s' % (binary, op))
                     argv += " --reg-src %s" % s
                     combinations = self.update_combinations(argv, combinations, operation)
             elif (dst is None) and (src is None):
-                argv = ('--binary %s --op %s' % (self.__binary, op))
+                argv = ('--binary %s --op %s' % (binary, op))
                 combinations = self.update_combinations(argv, combinations, operation)
         return combinations
 
     def update_combinations(self, argv, combinations, operation):
         args, core = self.make_core(argv)
         gadgets = core.search_operation(self.__gadgets, args.op, args.reg_src, args.reg_dst)
-        if len(gadgets) == 0:
+        if len(gadgets) == 0 and self.__enable_ropchain:
             ropchains = core.search_ropchains(self.__gadgets, args.op, args.reg_src, args.reg_dst)
             if len(ropchains) != 0:
                 combinations["ropchains"] += [{operation: self.best_ropchain(ropchains)}]
-        else:
+        elif len(gadgets) != 0:
             combinations["gadgets"] += [{operation: self.best_gadget(gadgets)}]
         return combinations
 
@@ -157,8 +184,8 @@ class RopGenerator:
         else:
             return list(set(srcs).intersection(core.get_all_srcs(op, gadgets)))
 
-    def all_gadgets(self):
-        argv = ('--binary %s %s' % (self.__binary, self.args_string()))
+    def all_gadgets(self, binary):
+        argv = ('--binary %s %s' % (binary, self.args_string()))
         argv = argv.split()
         args = Args(argv).get_args()
         core = Core(args)
@@ -231,9 +258,11 @@ class RopGenerator:
     def print_combinations(self, ops, combinations):
         for operation in ops:
             print(operation)
-            for comb in combinations["gadgets"]:
-                if operation in comb:
-                    self.print_gadget(comb[operation])
-            for comb in combinations["ropchains"]:
-                if operation in comb:
-                    self.print_ropchain(comb[operation])
+            if combinations["gadgets"]:
+                for comb in combinations["gadgets"]:
+                    if operation in comb:
+                        self.print_gadget(comb[operation])
+            if combinations["ropchains"]:
+                for comb in combinations["ropchains"]:
+                    if operation in comb:
+                        self.print_ropchain(comb[operation])

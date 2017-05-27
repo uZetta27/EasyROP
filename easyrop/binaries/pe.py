@@ -2,6 +2,10 @@ from pefile import *
 from capstone import *
 
 
+X86_MAGIC_NUMBER = "0x14c"
+X64_MAGIC_NUMBER = "0x8664"
+
+
 class Pe:
     def __init__(self, file_name):
         self.__file_name = file_name
@@ -14,10 +18,10 @@ class Pe:
         self.parse_arch()
 
     def parse_arch(self):
-        if hex(self.__pe.FILE_HEADER.Machine) == '0x14c':
+        if hex(self.__pe.FILE_HEADER.Machine) == X86_MAGIC_NUMBER:
             self.__archMode = CS_MODE_32
             self.__arch = CS_ARCH_X86
-        elif hex(self.__pe.FILE_HEADER.Machine) == '0x8664':
+        elif hex(self.__pe.FILE_HEADER.Machine) == X64_MAGIC_NUMBER:
             self.__archMode = CS_MODE_64
             self.__arch = CS_ARCH_X86
 

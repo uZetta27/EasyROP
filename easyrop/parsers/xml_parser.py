@@ -1,4 +1,7 @@
 import xml.etree.ElementTree
+from xml.etree.ElementTree import ParseError
+from easyrop.parsers.parse_exception import ParseException
+
 import os
 
 from os import listdir
@@ -21,25 +24,28 @@ VALUE = 'value'
 
 
 class XmlParser:
-    def get_all_files(self):
-        return [f for f in listdir(os.getcwd() + GADGET_DIRECTORY) if isfile(join(os.getcwd() + GADGET_DIRECTORY, f))]
-
     def __init__(self, op):
         self.__op = op
         self.__files = self.get_all_files()
         self.__file = self.get_file(op)
 
+    def get_all_files(self):
+        return [f for f in listdir(os.getcwd() + GADGET_DIRECTORY) if isfile(join(os.getcwd() + GADGET_DIRECTORY, f))]
+
     def get_file(self, op):
         found = False
         i = 0
         file = None
-        while i < len(self.__files) and not found:
-            path = os.getcwd() + GADGET_DIRECTORY + os.sep + self.__files[i]
-            file = xml.etree.ElementTree.parse(path).getroot()
-            for operation in file.findall(OPERATION):
-                if op == operation.get(NAME):
-                    found = True
-            i += 1
+        try:
+            while i < len(self.__files) and not found:
+                path = os.getcwd() + GADGET_DIRECTORY + os.sep + self.__files[i]
+                file = xml.etree.ElementTree.parse(path).getroot()
+                for operation in file.findall(OPERATION):
+                    if op == operation.get(NAME):
+                        found = True
+                i += 1
+        except ParseError:
+            raise ParseException
         return file
 
     def get_all_ops(self):

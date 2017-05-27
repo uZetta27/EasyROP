@@ -1,16 +1,13 @@
+"""
+This class allows to know if the system provides enough ROP gadgets to create a Turing-machine
+"""
 import datetime
-import os
-import sys
 from capstone import *
+
 from easyrop.args import Args
 from easyrop.binaries.binary import Binary
 from easyrop.core import Core
-
-if 'nt' in sys.builtin_module_names:
-    from winreg import *
-
-VALUE_NAME = 0
-VALUE_DATA = 1
+from easyrop.knowndlls import KnownDlls
 
 REG_64 = 0
 REG_32 = 1
@@ -18,32 +15,28 @@ REG_16 = 2
 REG_8_H = 3
 REG_8_L = 4
 
+# General purpose registers
 REGISTERS = [["rax", "rbx", "rcx", "rdx"],
              ["eax", "ebx", "ecx", "edx"],
              ["ax", "bx", "cx", "dx"],
              ["ah", "bh", "ch", "dh"],
              ["al", "bl", "cl", "dl"]]
 
-DLLS = ["advapi32.dll", "comdlg32.dll", "gdi32.dll", "kernel32.dll", "msvcrt.dll", "ole32.dll", "psapi.dll",
-        "rpcrt4.dll", "setupapi.dll", "shell32.dll", "shlwapi.dll", "user32.dll", "wldap32.dll", "ws2_32.dll"]
-
 
 class Tester:
     def __init__(self):
         self.__gadgets = []
         self.__mode = REG_64
+        self.knowndlls = KnownDlls()
 
     def test(self):
-        if 'nt' in sys.builtin_module_names:
-            start = datetime.datetime.now()
-            dlls = self.get_dlls()
-            dlls_path = self.get_absolute_paths(dlls)
-            for d in dlls_path:
-                self.test_binary(d, True)
-            end = datetime.datetime.now() - start
-            print('\nTime elapsed: %s' % str(end))
-        else:
-            print('[Error] No Windows system')
+        start = datetime.datetime.now()
+        dlls = self.knowndlls.get_dlls()
+        dlls_path = self.knowndlls.get_absolute_paths(dlls)
+        for d in dlls_path:
+            self.test_binary(d, True)
+        end = datetime.datetime.now() - start
+        print('\nTime elapsed: %s' % str(end))
 
     def test_binary(self, file, silent=False):
         start = datetime.datetime.now()
@@ -503,29 +496,3 @@ class Tester:
         if len(gadgets) != 0:
             return True
         return False
-
-    def get_dlls(self):
-        aReg = ConnectRegistry(None, HKEY_LOCAL_MACHINE)
-        aKey = OpenKey(aReg, "System\CurrentControlSet\Control\Session Manager\KnownDLLs")
-        dlls = []
-
-        for i in range(QueryInfoKey(aKey)[1]):
-            try:
-                values = EnumValue(aKey, i)
-                dlls += [values]
-            except EnvironmentError:
-                break
-        return dlls
-
-    def get_absolute_paths(self, dlls):
-        dlls_paths = []
-        windir = os.environ['windir']
-        system32 = os.sep + "system32" + os.sep
-
-        for dll in dlls:
-            if dll[VALUE_DATA].lower() in DLLS:
-                dll_path = windir + system32 + dll[VALUE_DATA]
-                if os.path.isfile(dll_path):
-                    dlls_paths += [dll_path]
-
-        return dlls_paths

@@ -1,3 +1,13 @@
+"""
+This class is a representation of a set formed by instructions. E.g:
+
+    set = [instruction1, instruction2]
+
+    instruction1 = "xor eax, eax"
+    instruction2 = "add ecx, eax"
+"""
+
+
 class Set:
     def __init__(self):
         self.__instructions = []

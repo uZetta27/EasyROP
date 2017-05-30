@@ -49,4 +49,11 @@
             </ins>
         </set>
     </operation>
+    <operation name="jmp">
+        <set>
+            <ins mnemonic="jmp">
+                <reg1>dst</reg1>
+            </ins>
+        </set>
+    </operation>
 </operations>

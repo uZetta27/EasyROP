@@ -13,8 +13,8 @@ VALUE_NAME = 0
 VALUE_DATA = 1
 
 # Most common DLLs in different Windows versions
-DLLS = ["advapi32.dll", "comdlg32.dll", "gdi32.dll", "kernel32.dll", "msvcrt.dll", "ole32.dll", "psapi.dll",
-        "rpcrt4.dll", "setupapi.dll", "shell32.dll", "shlwapi.dll", "user32.dll", "wldap32.dll", "ws2_32.dll"]
+common_dlls = ["kernel32.dll", "rpcrt4.dll", "ole32.dll", "shell32.dll", "advapi32.dll", "user32.dll", "gdi32.dll",
+               "comdlg32.dll", "msvcrt.dll", "wldap32.dll", "shlwapi.dll", "ws2_32.dll", "setuapi.dll", "psapi.dll"]
 
 
 class KnownDlls:
@@ -50,11 +50,12 @@ class KnownDlls:
         windir = os.environ['windir']
         system32 = os.sep + "system32" + os.sep
 
-        for dll in dlls:
-            if dll[VALUE_DATA].lower() in DLLS:
-                dll_path = windir + system32 + dll[VALUE_DATA]
-                if os.path.isfile(dll_path):
-                    dlls_paths += [dll_path]
+        for c in common_dlls:
+            for dll in dlls:
+                if dll[VALUE_DATA].lower() == c:
+                    dll_path = windir + system32 + dll[VALUE_DATA]
+                    if os.path.isfile(dll_path):
+                        dlls_paths += [dll_path]
 
         return dlls_paths
 

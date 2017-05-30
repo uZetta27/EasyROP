@@ -37,10 +37,13 @@ class RopGenerator:
         dlls = knowndlls.get_dlls()
         dlls_path = knowndlls.get_absolute_paths(dlls)
         for dll in dlls_path:
+            print("=" * 80)
             print("Searhing in %s" % dll)
             if self.search_ops(ops, dll):
                 break
-            print("Nothing found!")
+            print("-" * 10)
+            print("We have not all them, let's keep searching")
+            print("-" * 10)
 
     def search_ops(self, ops, binary):
         self.all_gadgets(binary)
@@ -48,6 +51,10 @@ class RopGenerator:
         combinations = self.ops_combinations(ops, regs, binary)
         ops_completed = self.all_combinations(combinations)
         if len(ops_completed) != len(ops):
+            print("-" * 10)
+            print("Some gadgets that may interest you")
+            print("-" * 10)
+            self.print_combinations(ops, combinations)
             return False
         self.print_combinations(ops, combinations)
         return True
@@ -266,3 +273,4 @@ class RopGenerator:
                 for comb in combinations["ropchains"]:
                     if operation in comb:
                         self.print_ropchain(comb[operation])
+            print("\n")

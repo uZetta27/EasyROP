@@ -4,7 +4,7 @@ This Python tool allows you to search gadgets, operations formed by gadgets and 
 ### Install
 EasyROP needs [Python3](https://www.python.org/downloads/), [Capstone](http://www.capstone-engine.org/download.html) and [pefile](https://pypi.python.org/pypi/pefile/) installation.
 
-Once you solve theses dependencies, EasyROP can be used as:
+Once you solve these dependencies, EasyROP can be used as:
 ```
 $ python EasyROP.py
 ```
@@ -14,7 +14,7 @@ $ python EasyROP.py
 usage: EasyROP.py [-h] [-v] [--binary <path>] [--depth <bytes>] [--all]
                   [--op <op>] [--reg-src <reg>] [--reg-dst <reg>] [--ropchain]
                   [--nojop] [--noretf] [--test-os] [--test-binary <path>]
-                  [--ropattack <path>]
+                  [--ropattack <path>] [--dlls]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -23,7 +23,7 @@ optional arguments:
   --depth <bytes>       Depth for search engine (default 5 bytes)
   --all                 Disables the removal of duplicate gadgets
   --op <op>             Search for operation: lc, move, load, store, add, sub,
-                        and, or, xor, not, cond1, cond2, nop, neg, adc, clc
+                        and, or, xor, not, cond1, cond2
   --reg-src <reg>       Specify a source reg to operation
   --reg-dst <reg>       Specify a destination reg to operation
   --ropchain            Enables ropchain generation to search for operation
@@ -33,6 +33,7 @@ optional arguments:
                         an attack (it takes long time)
   --test-binary <path>  Analyze a binary to test viability of an attack
   --ropattack <path>    Generate ROP attack from file
+  --dlls                Enable ROP attack search through KnownDLLs
 ```
 
 ### Operations

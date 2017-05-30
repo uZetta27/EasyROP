@@ -12,6 +12,7 @@ from easyrop.parsers.parse_exception import ParseException
 class Args:
     def __init__(self, arguments):
         self.__args = None
+        self.__p = None
         try:
             self.__p = Parser(None)
         except ParseException:
@@ -52,7 +53,7 @@ class Args:
             if self.__args.dlls and not self.__args.ropattack:
                 print("[Error] dlls option without a ropattack file (--ropattack or help)")
                 sys.exit(-1)
-            elif not self.__args.binary and (self.__args.ropattack and not self.__args.dlls):
+            elif not self.__args.binary and not (self.__args.ropattack and self.__args.dlls):
                 print("[Error] Need a binary filename (--help)")
                 sys.exit(-1)
 

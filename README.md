@@ -6,7 +6,7 @@ EasyROP needs [Python3](https://www.python.org/downloads/), [Capstone](http://ww
 
 Once you solve these dependencies, EasyROP can be used as:
 ```
-$ python EasyROP.py
+$> python EasyROP.py
 ```
 
 ### Use
@@ -102,44 +102,65 @@ clear(reg3)
 move(reg3, reg2)
 ```
 
-Which results in the following output:
+Which results in the following output (summarized for the sake of readability):
  ```
-$ python EasyROP.py --ropattack rop.txt --binary C:\Windows\System32\kernel32.dll --nojop --noretf
+$> python EasyROP.py --binary C:\Windows\system32\kernel32.dll --ropattack rop.txt --nojop --noretf
+Searching gadgets on C:\Windows\system32\kernel32.dll
+Trying to generate your ROP chains...
 
 lc(reg1)
-        0x77e85f37 : pop edx ; pop eax ; ret
-        0x77e93018 : pop ecx ; leave ; ret 4
-        0x77e735e0 : pop esp ; ret 0xfffb
-        0x77e2922e : pop esi ; ret
-        0x77e5238b : pop edi ; ret
-        0x77e000ad : pop ebp ; ret
+	0x77e1f35d: pop ebp ; adc bh, dh ; ret 
+	0x77e000ad: pop ebp ; ret 
+	0x77e4a3ed: pop ecx ; pop ebp ; pop ecx ; pop ebx ; ret 4 
+	0x77e4a3ef: pop ecx ; pop ebx ; ret 4 
+	0x77e2922d: pop edi ; pop esi ; ret 
+	0x77e5238b: pop edi ; ret 
+	0x77e85f37: pop edx ; pop eax ; ret 
+	0x77e976d4: pop edx ; ret 0xb 
+	0x77e123a0: pop esi ; leave ; ret 
+	0x77e77f01: pop esi ; ret 4 
+	0x77e2683c: pop esp ; add byte ptr [eax], al ; leave ; ret 4 
+	0x77e735e0: pop esp ; ret 0xfffb 
 lc(reg2)
-        0x77e93018 : pop ecx ; leave ; ret 4
-        0x77e735e0 : pop esp ; ret 0xfffb
-        0x77e5238b : pop edi ; ret
-        0x77e2e386 : pop ebx ; ret
-        0x77e78a2d : pop eax ; ret
+	0x77e6f379: pop eax ; leave ; ret 
+	0x77e78a2d: pop eax ; ret 
+	0x77e2e386: pop ebx ; ret 
+	0x77e4a3f0: pop ebx ; ret 4 
+	0x77e93018: pop ecx ; leave ; ret 4 
+	0x77e4a3ed: pop ecx ; pop ebp ; pop ecx ; pop ebx ; ret 4 
+	0x77e2ef97: pop edi ; leave ; ret 
+	0x77e5238b: pop edi ; ret 
+	0x77e2683c: pop esp ; add byte ptr [eax], al ; leave ; ret 4 
+	0x77e735e0: pop esp ; ret 0xfffb 
 sub(reg2, reg1)
-        0x77e306a1 : sub ecx, edx ; mov dword ptr [edi], ecx ; ret
-        0x77e1fece : sub ecx, esi ; add byte ptr [eax], al ; ret 8
-        0x77e928ed : sub ecx, ebp ; ja 0x77e928d9 ; ret
-        0x77e69b50 : sub esp, edi ; dec ecx ; ret 0x14
-        0x77e699d2 : sub edi, esp ; dec ecx ; ret 0x14
-        0x77e1f2ce : sub ebx, edx ; add byte ptr [eax], al ; ret 4
-        0x77e1d2b1 : sub eax, ecx ; pop ebx ; pop ebp ; ret 8
-        0x77e3ec10 : sub eax, esi ; pop esi ; pop ebp ; ret 8
+	0x77e1d2b1: sub eax, ecx ; pop ebx ; pop ebp ; ret 8 
+	0x77e3ec10: sub eax, esi ; pop esi ; pop ebp ; ret 8 
+	0x77e1f2ce: sub ebx, edx ; add byte ptr [eax], al ; ret 4 
+	0x77e928ed: sub ecx, ebp ; ja 0x77e928d9 ; ret 
+	0x77e306a1: sub ecx, edx ; mov dword ptr [edi], ecx ; ret 
+	0x77e1fece: sub ecx, esi ; add byte ptr [eax], al ; ret 8 
+	0x77e699d2: sub edi, esp ; dec ecx ; ret 0x14 
+	0x77e69b50: sub esp, edi ; dec ecx ; ret 0x14 
 clear(reg3)
-        0x77e8601b : xor al, al ; ret
-        0x77e0b823 : xor eax, eax ; ret
-        0x77e32aa7 : xor esi, esi ; ret 0x7520
+	0x77e0b823: xor eax, eax ; ret 
+	0x77e02ce5: xor eax, eax ; ret 4 
 move(reg3, reg2)
-        0x77e3edb0 : mov eax, ecx ; ret
-        0x77e212c2 : xchg eax, esp ; ret
-        0x77e34c56 : xchg eax, edi ; add al, byte ptr [eax] ; leave ; ret
-        0x77e3c132 : mov eax, ebx ; pop ebx ; pop ebp ; ret
-        0x77e2243b : mov eax, eax ; ret
+	0x77e79dcd: and eax, ecx ; pop ebp ; ret 0xc  (eax = 0xFFFFFFFF)
+	0x77e3e168: and eax, ecx ; pop ebp ; ret 4  (eax = 0xFFFFFFFF)
+	0x77e2243b: mov eax, eax ; ret 
+	0x77e913ae: mov eax, ebx ; pop ebx ; leave ; ret 0x10 
+	0x77e94bf8: mov eax, ecx ; leave ; ret 0x18 
+	0x77e2a43f: mov eax, ecx ; pop ebp ; ret 8 
+	0x77e3e138: mov eax, edi ; pop edi ; leave ; ret 0xc 
+	0x77e3da51: mov eax, edi ; pop edi ; leave ; ret 8 
+	0x77e8772e: push edi ; pop eax ; pop ebp ; ret 4 
+	0x77e90c9a: push edi ; pop eax ; pop esi ; leave ; ret 8 
+	0x77e63143: xchg eax, ebx ; cld ; dec ecx ; ret 4 
+	0x77e631c7: xchg eax, ebx ; sti ; dec ecx ; ret 4 
+	0x77e34c56: xchg eax, edi ; add al, byte ptr [eax] ; leave ; ret 
+	0x77e212c2: xchg eax, esp ; ret 
 
-Time elapsed: 0:02:27.470385
+Time elapsed: 0:00:11.261473
  ```
 
 ### License

@@ -16,7 +16,7 @@ INSTRUCTION_SIZE = 1
 
 
 class Core:
-    def __init__(self, options):
+    def __init__(self, options=None):
         self.__options = options
         self.__gadgets = []
 
@@ -140,7 +140,7 @@ class Core:
                     decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
                     same, values = self.same_gadget_set(decodes, s)
                     if same:
-                        ret += [{"gadget": gadget, "values": values}]
+                        ret += [{"gadget": gadget, "values": values, "dst": _dst, "src": _src}]
         return ret
 
     def search_set(self, ret, gadgets, md, s):
@@ -167,7 +167,7 @@ class Core:
                 decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
                 same, values = self.same_gadget_set(decodes, saux)
                 if same:
-                    ret += [{"gadget": gadget, "values": values}]
+                    ret += [{"gadget": gadget, "values": values, "dst": saux.get}]
         return ret
 
     def get_operands_set(self, _aux, _dst, _src, decode, ins):
@@ -386,47 +386,6 @@ class Core:
                 continue
             new += [gadget]
         return new
-
-    def get_all_dsts(self, op, gadgets):
-        dst = set()
-        md, sets = self.get_sets(op)
-        for gadget in gadgets:
-            for s in sets:
-                decodes = md.disasm(gadget["gadget"]["bytes"], gadget["gadget"]["vaddr"])
-                for decode, ins in zip(decodes, s.get_instructions()):
-                    if decode.mnemonic == ins.get_mnemonic():
-                        reg = None
-                        if ins.is_dst(REG1):
-                            reg = self.get_register(decode, REG1)
-                        elif ins.is_dst(REG2):
-                            reg = self.get_register(decode, REG2)
-                        elif ins.is_dst_address(REG1):
-                            reg = self.get_reg_base(decode, REG1)
-                        elif ins.is_dst_address(REG2):
-                            reg = self.get_reg_base(decode, REG2)
-                        if reg:
-                            dst.add(reg)
-        return list(dst)
-
-    def get_all_srcs(self, op, gadgets):
-        src = set()
-        md, sets = self.get_sets(op)
-        for gadget in gadgets:
-            for s in sets:
-                decodes = md.disasm(gadget["gadget"]["bytes"], gadget["gadget"]["vaddr"])
-                for decode, ins in zip(decodes, s.get_instructions()):
-                    reg = None
-                    if ins.is_src(REG1):
-                        reg = self.get_register(decode, REG1)
-                    elif ins.is_src(REG2):
-                        reg = self.get_register(decode, REG2)
-                    elif ins.is_src_address(REG1):
-                        reg = self.get_reg_base(decode, REG1)
-                    elif ins.is_src_address(REG2):
-                        reg = self.get_reg_base(decode, REG2)
-                    if reg:
-                        src.add(reg)
-        return list(src)
 
     def get_operation(self, op):
         binary = Binary(self.__options.binary)

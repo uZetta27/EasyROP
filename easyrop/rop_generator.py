@@ -1,6 +1,7 @@
+import datetime
+
 from easyrop.knowndlls import *
 from easyrop.binaries.binary import *
-import datetime
 from easyrop.args import Args
 from easyrop.core import Core
 
@@ -86,7 +87,6 @@ class RopGenerator:
                 if gadget["op"] == op:
                     regs = set()
                     for gad in gadget["gadget"]:
-                        '''if jmp eax, the is no DST!!!! see core.search_operation and core.has_all_operands'''
                         if gad["dst"] and gad["src"]:
                             regs.add((gad["dst"], gad["src"]))
                         elif gad["dst"]:
@@ -140,19 +140,29 @@ class RopGenerator:
                     if gadget["op"] == op:
                         for gad in gadget["gadget"]:
                             if dst not in REGISTERS and src not in REGISTERS:
-                                if gad["dst"] in regs[dst] and gad["src"] in regs[src]:
-                                    dsts.add(gad["dst"])
+                                try:
+                                    if gad["dst"] in regs[dst] and gad["src"] in regs[src]:
+                                        dsts.add(gad["dst"])
+                                        srcs.add(gad["src"])
+                                except KeyError:
                                     srcs.add(gad["src"])
+                                    dsts.add(gad["dst"])
                             elif dst in REGISTERS and src not in REGISTERS:
                                 if gad["src"] in regs[src]:
                                     srcs.add(gad["src"])
                             elif src in REGISTERS and dst not in REGISTERS:
                                 if gad["dst"] in regs[dst]:
                                     dsts.add(gad["dst"])
-                if dst not in REGISTERS:
-                    regs[dst] = list(dsts.intersection(regs[dst]))
-                if src not in REGISTERS:
-                    regs[src] = list(srcs.intersection(regs[src]))
+                try:
+                    if dst not in REGISTERS:
+                        regs[dst] = list(dsts.intersection(regs[dst]))
+                except KeyError:
+                    regs.update({dst: dsts})
+                try:
+                    if src not in REGISTERS:
+                        regs[src] = list(srcs.intersection(regs[src]))
+                except KeyError:
+                    regs.update({src: srcs})
         return regs
 
     def make_core(self, argv):

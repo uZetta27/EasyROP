@@ -1,0 +1,2 @@
+class BinaryException(Exception):
+    pass

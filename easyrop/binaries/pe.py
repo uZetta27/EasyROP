@@ -1,6 +1,7 @@
 from pefile import *
 from capstone import *
 
+from easyrop.binaries.binary_exception import BinaryException
 
 X86_MAGIC_NUMBER = "0x14c"
 X64_MAGIC_NUMBER = "0x8664"
@@ -13,9 +14,11 @@ class Pe:
         self.__archMode = None
         self.__arch = None
 
-        self.__pe = PE(file_name)
-
-        self.parse_arch()
+        try:
+            self.__pe = PE(file_name)
+            self.parse_arch()
+        except PEFormatError:
+            raise BinaryException
 
     def parse_arch(self):
         if hex(self.__pe.FILE_HEADER.Machine) == X86_MAGIC_NUMBER:

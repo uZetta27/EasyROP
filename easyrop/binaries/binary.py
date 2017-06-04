@@ -1,9 +1,9 @@
 """
 Interface to implement to parse different binary formats (PE, Mach-O, ELF, etc.)
 """
-
 import sys
 from easyrop.binaries.pe import Pe
+from easyrop.binaries.binary_exception import BinaryException
 
 
 class Binary:
@@ -15,6 +15,9 @@ class Binary:
             self.__binary = Pe(self.__file_name)
         except IOError:
             print("[Error] Can't open binary or binary not found")
+            sys.exit(-1)
+        except BinaryException:
+            print("[Error] Can't parse binary file, probably corrupted or not a binary file")
             sys.exit(-1)
 
     def get_file_name(self):

@@ -1,6 +1,3 @@
-import datetime
-
-import datetime
 from easyrop.knowndlls import *
 from easyrop.binaries.binary import *
 import datetime
@@ -58,16 +55,6 @@ class RopGenerator:
             return False
         self.print_combinations(ops, combinations, gadgets)
         return True
-
-    def get_regs_implicated(self, op, combinations):
-        res = {}
-        _, dst, src = self.parse_op(op)
-        for comb in combinations:
-            if dst == comb["reg"]:
-                res.update({dst: comb["values"]})
-            if src == comb["reg"]:
-                res.update({src: comb["values"]})
-        return res
 
     def has_all_combinations(self, combinations):
         res = True
@@ -152,11 +139,20 @@ class RopGenerator:
                 for gadget in gadgets:
                     if gadget["op"] == op:
                         for gad in gadget["gadget"]:
-                            if gad["dst"] in regs[dst] and gad["src"] in regs[src]:
-                                dsts.add(gad["dst"])
-                                srcs.add(gad["src"])
-                regs[dst] = list(dsts.intersection(regs[dst]))
-                regs[src] = list(srcs.intersection(regs[src]))
+                            if dst not in REGISTERS and src not in REGISTERS:
+                                if gad["dst"] in regs[dst] and gad["src"] in regs[src]:
+                                    dsts.add(gad["dst"])
+                                    srcs.add(gad["src"])
+                            elif dst in REGISTERS and src not in REGISTERS:
+                                if gad["src"] in regs[src]:
+                                    srcs.add(gad["src"])
+                            elif src in REGISTERS and dst not in REGISTERS:
+                                if gad["dst"] in regs[dst]:
+                                    dsts.add(gad["dst"])
+                if dst not in REGISTERS:
+                    regs[dst] = list(dsts.intersection(regs[dst]))
+                if src not in REGISTERS:
+                    regs[src] = list(srcs.intersection(regs[src]))
         return regs
 
     def make_core(self, argv):
@@ -223,10 +219,16 @@ class RopGenerator:
                     for gad in gadget["gadget"]:
                         operation, dst, src = self.parse_op(op)
                         if dst and src:
-                            values_dst = self.get_values_of_reg(dst, combinations)
-                            values_src = self.get_values_of_reg(src, combinations)
-                            if gad["dst"] in values_dst and gad["src"] in values_src:
+                            if dst in REGISTERS and src in REGISTERS:
                                 self.print_gadget(gad)
+                            else:
+                                values_dst = self.get_values_of_reg(dst, combinations)
+                                values_src = self.get_values_of_reg(src, combinations)
+                                if gad["dst"] in values_dst and gad["src"] in values_src:
+                                    self.print_gadget(gad)
+                                elif (dst in REGISTERS and gad["src"] in values_src) or \
+                                        (src in REGISTERS and gad["dst"] in values_dst):
+                                    self.print_gadget(gad)
                         elif dst:
                             values_dst = self.get_values_of_reg(dst, combinations)
                             if gad["dst"] in values_dst:
@@ -236,19 +238,7 @@ class RopGenerator:
                             if gad["src"] in values_src:
                                 self.print_gadget(gad)
                         else:
-                            operation2, _, _ = self.parse_op(gadget["op"])
-                            if operation == operation2:
-                                if dst and src:
-                                    if dst == gad["dst"] and dst == gad["src"]:
-                                        self.print_gadget(gad)
-                                elif dst:
-                                    if dst == gad["dst"]:
-                                        self.print_gadget(gad)
-                                elif src:
-                                    if src == gad["src"]:
-                                        self.print_gadget(gad)
-                                else:
-                                    self.print_gadget(gad)
+                            self.print_gadget(gad)
 
     def print_gadget(self, gad):
         print("\t0x%x: %s %s" % (gad["gadget"]["vaddr"], gad["gadget"]["gadget"], gad["values"]))

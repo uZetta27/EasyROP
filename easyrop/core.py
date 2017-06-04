@@ -106,9 +106,9 @@ class Core:
             sets = operation.get_sets()
             for s in sets:
                 if s.need_aux():
-                    ret = self.search_set_with_aux(ret, gadgets, md, s)
+                    ret = self.search_set_with_aux(ret, gadgets, md, s, dst, src)
                 else:
-                    ret = self.search_set(ret, gadgets, md, s)
+                    ret = self.search_set(ret, gadgets, md, s, dst, src)
         else:
             ret = self.search_generic_set(ret, dst, src, md, gadgets, parser)
         return ret
@@ -143,15 +143,15 @@ class Core:
                         ret += [{"gadget": gadget, "values": values, "dst": _dst, "src": _src}]
         return ret
 
-    def search_set(self, ret, gadgets, md, s):
+    def search_set(self, ret, gadgets, md, s, dst, src):
         for gadget in gadgets:
             decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
             same, values = self.same_gadget_set(decodes, s)
             if same:
-                ret += [{"gadget": gadget, "values": values}]
+                ret += [{"gadget": gadget, "values": values, "dst": dst, "src": src}]
         return ret
 
-    def search_set_with_aux(self, ret, gadgets, md, s):
+    def search_set_with_aux(self, ret, gadgets, md, s, dst, src):
         for gadget in gadgets:
             _aux = None
             decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
@@ -167,7 +167,7 @@ class Core:
                 decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
                 same, values = self.same_gadget_set(decodes, saux)
                 if same:
-                    ret += [{"gadget": gadget, "values": values, "dst": saux.get}]
+                    ret += [{"gadget": gadget, "values": values, "dst": dst, "src": src}]
         return ret
 
     def get_operands_set(self, _aux, _dst, _src, decode, ins):

@@ -15,7 +15,7 @@ REGISTERS = ["rax", "rbx", "rcx", "rdx",
 
 class RopGenerator:
     def __init__(self, binary, rop_file, ropchain, dlls):
-        self.__gadgets = []
+        self.__operations = {}
         self.__binary = binary
         self.__rop_file = rop_file
         self.__enable_ropchain = ropchain
@@ -41,21 +41,32 @@ class RopGenerator:
             print("=" * 80)
             if self.search_ops(ops, dll):
                 break
-            print("-" * 10)
-            print("We haven't all of them yet, let's keep searching")
-            print("-" * 10)
+            print("We haven't all of them yet, let's keep searching...\n")
 
     def search_ops(self, ops, binary):
         print("Searching gadgets on %s" % binary)
-        self.all_gadgets(binary)
+        gadgets = self.all_gadgets(binary)
         print("Trying to generate your ROP chains...\n")
-        gadgets = self.get_gadgets_of_operations(ops, binary)
+        gadgets = self.get_gadgets_of_operations(ops, binary, gadgets)
+        self.__operations[binary] = gadgets
         combinations = self.regs_combinations(ops, gadgets)
         if not self.has_all_combinations(combinations):
-            self.print_combinations(ops, combinations, gadgets)
+            if self.can_combine_dlls():
+                gads = []
+                for key in self.__operations.keys():
+                    gads += self.__operations[key]
+                combinations = self.regs_combinations(ops, gads)
+                if not self.has_all_combinations(combinations):
+                    return False
+                else:
+                    self.print_combinations(ops, combinations, gads)
+                    return True
             return False
         self.print_combinations(ops, combinations, gadgets)
         return True
+
+    def can_combine_dlls(self):
+        return len(self.__operations) > 1
 
     def has_all_combinations(self, combinations):
         res = True
@@ -66,7 +77,7 @@ class RopGenerator:
     def is_empty_combination(self, combination):
         return len(combination["values"]) != 0
 
-    def get_gadgets_of_operations(self, ops, binary):
+    def get_gadgets_of_operations(self, ops, binary, gads):
         gadgets = []
         for op in ops:
             op2, dst, src = self.parse_op(op)
@@ -76,7 +87,7 @@ class RopGenerator:
             if src in REGISTERS:
                 argv += " --reg-src %s" % src
             args, core = self.make_core(argv)
-            gadgets += [{"op": op, "gadget": core.search_operation(self.__gadgets, args.op, args.reg_src, args.reg_dst)}]
+            gadgets += [{"op": op, "gadget": core.search_operation(gads, args.op, args.reg_src, args.reg_dst)}]
         return gadgets
 
     def regs_combinations(self, ops, gadgets):
@@ -95,11 +106,11 @@ class RopGenerator:
                             regs.add((gad["src"]))
 
                     combinations.append({op: regs})
-
         return self.common_regs(ops, combinations, gadgets)
 
     def common_regs(self, ops, combinations, gadgets):
         regs = self.get_regs_single_operations(combinations, ops)
+        regs = self.clean_nonexists_operations(gadgets, ops, regs)
         regs = self.clean_nonexists_operations(gadgets, ops, regs)
 
         res = []
@@ -176,8 +187,8 @@ class RopGenerator:
         argv = argv.split()
         args = Args(argv).get_args()
         core = Core(args)
-        self.__gadgets = core.analyze(True)
-        self.__gadgets = core.pass_clean(self.__gadgets)
+        gadgets = core.analyze(True)
+        return core.pass_clean(gadgets)
 
     def read_file(self):
         try:

@@ -59,10 +59,10 @@ class RopGenerator:
                 if not self.has_all_combinations(combinations):
                     return False
                 else:
-                    self.print_combinations(ops, combinations, gads)
+                    self.print_combinations(ops, combinations)
                     return True
             return False
-        self.print_combinations(ops, combinations, gadgets)
+        self.print_combinations(ops, combinations)
         return True
 
     def can_combine_dlls(self):
@@ -159,10 +159,16 @@ class RopGenerator:
                                     srcs.add(gad["src"])
                                     dsts.add(gad["dst"])
                             elif dst in REGISTERS and src not in REGISTERS:
-                                if gad["src"] in regs[src]:
+                                try:
+                                    if gad["src"] in regs[src]:
+                                        srcs.add(gad["src"])
+                                except KeyError:
                                     srcs.add(gad["src"])
                             elif src in REGISTERS and dst not in REGISTERS:
-                                if gad["dst"] in regs[dst]:
+                                try:
+                                    if gad["dst"] in regs[dst]:
+                                        dsts.add(gad["dst"])
+                                except KeyError:
                                     dsts.add(gad["dst"])
                 try:
                     if dst not in REGISTERS:
@@ -232,34 +238,40 @@ class RopGenerator:
             args_string += " --noretf"
         return args_string
 
-    def print_combinations(self, ops, combinations, gadgets):
+    def print_combinations(self, ops, combinations):
+        keys = self.__operations.keys()
         for op in ops:
             print(op)
-            for gadget in gadgets:
-                if op == gadget["op"]:
-                    for gad in gadget["gadget"]:
-                        operation, dst, src = self.parse_op(op)
-                        if dst and src:
-                            if dst in REGISTERS and src in REGISTERS:
-                                self.print_gadget(gad)
-                            else:
+            for k in keys:
+                gadgets = self.__operations[k]
+                print("\t" + k.split('\\')[-1])
+                print("\t" + "-" * 10)
+                for gadget in gadgets:
+                    if op == gadget["op"]:
+                        for gad in gadget["gadget"]:
+                            operation, dst, src = self.parse_op(op)
+                            if dst and src:
+                                if dst in REGISTERS and src in REGISTERS:
+                                    self.print_gadget(gad)
+                                else:
+                                    values_dst = self.get_values_of_reg(dst, combinations)
+                                    values_src = self.get_values_of_reg(src, combinations)
+                                    if gad["dst"] in values_dst and gad["src"] in values_src:
+                                        self.print_gadget(gad)
+                                    elif (dst in REGISTERS and gad["src"] in values_src) or \
+                                            (src in REGISTERS and gad["dst"] in values_dst):
+                                        self.print_gadget(gad)
+                            elif dst:
                                 values_dst = self.get_values_of_reg(dst, combinations)
+                                if gad["dst"] in values_dst:
+                                    self.print_gadget(gad)
+                            elif src:
                                 values_src = self.get_values_of_reg(src, combinations)
-                                if gad["dst"] in values_dst and gad["src"] in values_src:
+                                if gad["src"] in values_src:
                                     self.print_gadget(gad)
-                                elif (dst in REGISTERS and gad["src"] in values_src) or \
-                                        (src in REGISTERS and gad["dst"] in values_dst):
-                                    self.print_gadget(gad)
-                        elif dst:
-                            values_dst = self.get_values_of_reg(dst, combinations)
-                            if gad["dst"] in values_dst:
+                            else:
                                 self.print_gadget(gad)
-                        elif src:
-                            values_src = self.get_values_of_reg(src, combinations)
-                            if gad["src"] in values_src:
-                                self.print_gadget(gad)
-                        else:
-                            self.print_gadget(gad)
+                print("\t" + "-" * 10)
 
     def print_gadget(self, gad):
         print("\t0x%x: %s %s" % (gad["gadget"]["vaddr"], gad["gadget"]["gadget"], gad["values"]))

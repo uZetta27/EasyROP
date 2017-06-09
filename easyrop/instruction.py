@@ -1,3 +1,9 @@
+"""
+This class is a representation of an instruction. E.g:
+
+    instruction = "xor eax, eax"
+"""
+
 DESTINATION = 'dst'
 SOURCE = 'src'
 AUXILIARY = 'aux'

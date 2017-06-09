@@ -1,3 +1,6 @@
 import easyrop
 
-easyrop.main()
+try:
+    easyrop.main()
+except KeyboardInterrupt:
+    print("KeyboardInterrupt...")

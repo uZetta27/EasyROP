@@ -4,6 +4,7 @@ Class with the main funcionality: it searchs gadgets in a binary, operations and
 
 import datetime
 import re
+import os
 from capstone import *
 from capstone.x86 import *
 from easyrop.binaries.binary import Binary
@@ -40,6 +41,7 @@ class Core:
                     self.print_ropchains(ropchains)
             else:
                 gadgets = self.search_operation(self.__gadgets, self.__options.op, self.__options.reg_src, self.__options.reg_dst)
+                gadgets = self.alpha_sortoperation(gadgets)
                 if not silent:
                     self.print_operation(gadgets)
         else:
@@ -76,41 +78,43 @@ class Core:
         return self.search_gadgets(gadgets)
 
     def search_gadgets(self, gadgets):
-        binary = Binary(self.__options.binary)
-        section = binary.get_exec_sections()
-        vaddr = binary.get_entry_point()
-        arch = binary.get_arch()
-        mode = binary.get_arch_mode()
-
         ret = []
-        md = Cs(arch, mode)
-        for gad in gadgets:
-            all_ref_ret = [m.start() for m in re.finditer(gad[INSTRUCTION_OP], section)]
-            for ref in all_ref_ret:
-                for depth in range(self.__options.depth):
+        for bin_ in self.__options.binary:
+            binary = Binary(bin_)
+            section = binary.get_exec_sections()
+            vaddr = binary.get_entry_point()
+            arch = binary.get_arch()
+            mode = binary.get_arch_mode()
+
+            md = Cs(arch, mode)
+            for gad in gadgets:
+                all_ref_ret = [m.start() for m in re.finditer(gad[INSTRUCTION_OP], section)]
+                for ref in all_ref_ret:
+                    for depth in range(self.__options.depth):
                         decodes = md.disasm(section[ref - depth:ref + gad[INSTRUCTION_SIZE]], vaddr + ref - depth)
                         gadget = ""
                         for decode in decodes:
                             gadget += (decode.mnemonic + " " + decode.op_str + " ; ").replace("  ", " ")
                         if len(gadget) > 0:
                             gadget = gadget[:-3]
-                            ret += [{"vaddr": vaddr + ref - depth, "gadget": gadget, "bytes": section[ref - depth:ref + gad[INSTRUCTION_SIZE]]}]
+                            ret += [{"file": os.path.basename(bin_), "vaddr": vaddr + ref - depth, "gadget": gadget, "bytes": section[ref - depth:ref + gad[INSTRUCTION_SIZE]]}]
         return ret
 
     def search_operation(self, gadgets, op, src, dst):
         ret = []
-        md, operation, parser = self.get_operation(op)
-        if self.has_all_operands(operation, dst, src):
-            operation.set_dst(dst)
-            operation.set_src(src)
-            sets = operation.get_sets()
-            for s in sets:
-                if s.need_aux():
-                    ret = self.search_set_with_aux(ret, gadgets, md, s, dst, src)
-                else:
-                    ret = self.search_set(ret, gadgets, md, s, dst, src)
-        else:
-            ret = self.search_generic_set(ret, dst, src, md, gadgets, parser)
+        for bin_ in self.__options.binary:
+            md, operation, parser = self.get_operation(bin_, op)
+            if self.has_all_operands(operation, dst, src):
+                operation.set_dst(dst)
+                operation.set_src(src)
+                sets = operation.get_sets()
+                for s in sets:
+                    if s.need_aux():
+                        ret = self.search_set_with_aux(os.path.basename(bin_), ret, gadgets, md, s, dst, src)
+                    else:
+                        ret = self.search_set(os.path.basename(bin_), ret, gadgets, md, s, dst, src)
+            else:
+                ret = self.search_generic_set(os.path.basename(bin_), ret, dst, src, md, gadgets, parser)
         return ret
 
     def has_all_operands(self, operation, dst, src):
@@ -118,7 +122,7 @@ class Core:
                 not ((operation.need_src() and not src) or (operation.need_dst() and not dst))
         return result
 
-    def search_generic_set(self, ret, dst, src, md, gadgets, parser):
+    def search_generic_set(self, bin_, ret, dst, src, md, gadgets, parser):
         for gadget in gadgets:
             operation = parser.get_operation()
             sets = operation.get_sets()
@@ -140,18 +144,18 @@ class Core:
                     decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
                     same, values = self.same_gadget_set(decodes, s)
                     if same:
-                        ret += [{"gadget": gadget, "values": values, "dst": _dst, "src": _src}]
+                        ret += [{"file": bin_, "gadget": gadget, "values": values, "dst": _dst, "src": _src}]
         return ret
 
-    def search_set(self, ret, gadgets, md, s, dst, src):
+    def search_set(self, bin_, ret, gadgets, md, s, dst, src):
         for gadget in gadgets:
             decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
             same, values = self.same_gadget_set(decodes, s)
             if same:
-                ret += [{"gadget": gadget, "values": values, "dst": dst, "src": src}]
+                ret += [{"file": bin_, "gadget": gadget, "values": values, "dst": dst, "src": src}]
         return ret
 
-    def search_set_with_aux(self, ret, gadgets, md, s, dst, src):
+    def search_set_with_aux(self, bin_, ret, gadgets, md, s, dst, src):
         for gadget in gadgets:
             _aux = None
             decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
@@ -167,7 +171,7 @@ class Core:
                 decodes = md.disasm(gadget["bytes"], gadget["vaddr"])
                 same, values = self.same_gadget_set(decodes, saux)
                 if same:
-                    ret += [{"gadget": gadget, "values": values, "dst": dst, "src": src}]
+                    ret += [{"file": bin_, "gadget": gadget, "values": values, "dst": dst, "src": src}]
         return ret
 
     def get_operands_set(self, _aux, _dst, _src, decode, ins):
@@ -249,21 +253,22 @@ class Core:
 
     def search_ropchains(self, gadgets, op, src, dst):
         ret = []
-        gadgets = self.lenght_sortgadgets(gadgets)
-        md, operation, parser = self.get_operation(op)
-        if self.has_all_operands(operation, dst, src):
-            operation.set_dst(dst)
-            operation.set_src(src)
-            sets = operation.get_sets()
-            for s in sets:
-                if len(s) > 1:
-                    chain = []
-                    if s.need_aux():
-                        chain = self.search_set_with_aux_ropchain(chain, gadgets, md, s)
-                    else:
-                        chain = self.searh_set_ropchain(chain, gadgets, md, s)
-                    if len(s) == len(chain):
-                        ret += [chain]
+        for bin_ in self.__options.binary:
+            gadgets = self.lenght_sortgadgets(gadgets)
+            md, operation, parser = self.get_operation(bin_, op)
+            if self.has_all_operands(operation, dst, src):
+                operation.set_dst(dst)
+                operation.set_src(src)
+                sets = operation.get_sets()
+                for s in sets:
+                    if len(s) > 1:
+                        chain = []
+                        if s.need_aux():
+                            chain = self.search_set_with_aux_ropchain(chain, gadgets, md, s)
+                        else:
+                            chain = self.searh_set_ropchain(chain, gadgets, md, s)
+                        if len(s) == len(chain):
+                            ret += [{"file": os.path.basename(bin_), "chain": chain}]
         return ret
 
     def search_set_with_aux_ropchain(self, chain, gadgets, md, s):
@@ -333,22 +338,22 @@ class Core:
         print("Gadgets information")
         print("============================================================")
         for gad in gadgets:
-            print("0x%x : %s" % (gad["vaddr"], gad["gadget"]))
+            print("[%s @ 0x%x] : %s" % (gad["file"], gad["vaddr"], gad["gadget"]))
         print("\nGadgets found: %d" % len(gadgets))
 
     def print_operation(self, gadgets):
         print("Operation \'%s\' gadgets" % self.__options.op)
         print("============================================================")
         for gad in gadgets:
-            print("0x%x : %s %s" % (gad["gadget"]["vaddr"], gad["gadget"]["gadget"], gad["values"]))
+            print("[%s @ 0x%x] : %s %s" % (gad["file"], gad["gadget"]["vaddr"], gad["gadget"]["gadget"], gad["values"]))
         print("\nGadgets found: %d" % len(gadgets))
 
     def print_ropchains(self, ropchains):
         print("ROPchains information")
         print("============================================================")
         for chain in ropchains:
-            for gad in chain:
-                print("0x%x : %s %s" % (gad["gadget"]["vaddr"], gad["gadget"]["gadget"], gad["values"]))
+            for gad in chain["chain"]:
+                print("[%s @ 0x%x] : %s %s" % (chain["file"], gad["gadget"]["vaddr"], gad["gadget"]["gadget"], gad["values"]))
             print('-----------------------------------------')
         print("\nROPchains found: %d" % len(ropchains))
 
@@ -365,6 +370,9 @@ class Core:
 
     def alpha_sortgadgets(self, current_gadgets):
         return sorted(current_gadgets, key=lambda gadget: gadget["gadget"])
+
+    def alpha_sortoperation(self, operations):
+        return sorted(operations, key=lambda gadget: gadget["gadget"]["gadget"])
 
     def lenght_sortgadgets(self, current_gadgets):
         return sorted(current_gadgets, key=lambda gadget: len(gadget["bytes"]))
@@ -387,8 +395,8 @@ class Core:
             new += [gadget]
         return new
 
-    def get_operation(self, op):
-        binary = Binary(self.__options.binary)
+    def get_operation(self, bin_, op):
+        binary = Binary(bin_)
         parser = Parser(op)
         arch = binary.get_arch()
         mode = binary.get_arch_mode()

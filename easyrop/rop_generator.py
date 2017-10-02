@@ -1,4 +1,5 @@
 import datetime
+import os
 
 from easyrop.knowndlls import *
 from easyrop.binaries.binary import *
@@ -26,27 +27,26 @@ class RopGenerator:
         ops = self.read_file()
         if ops:
             if self.__enable_dlls:
-                self.search_ops_dlls(ops)
+                knowndlls = KnownDlls()
+                dlls = knowndlls.get_dlls()
+                dlls_path = knowndlls.get_absolute_paths(dlls)
+                self.search_ops_dlls(dlls_path, ops)
             else:
-                self.search_ops(ops, self.__binary)
+                self.search_ops_dlls(self.__binary, ops)
             end = datetime.datetime.now() - start
             # print time
             print('\nTime elapsed: %s' % str(end))
 
-    def search_ops_dlls(self, ops):
-        knowndlls = KnownDlls()
-        dlls = knowndlls.get_dlls()
-        dlls_path = knowndlls.get_absolute_paths(dlls)
-        for dll in dlls_path:
-            print("=" * 80)
+    def search_ops_dlls(self, dlls, ops):
+        for dll in dlls:
             if self.search_ops(ops, dll):
                 break
-            print("We haven't all of them yet, let's keep searching...\n")
+            print("[-] We haven't all of them yet, let's keep searching...\n")
 
     def search_ops(self, ops, binary):
-        print("Searching gadgets on %s" % binary)
+        print("[*] Searching gadgets on %s" % binary)
         gadgets = self.all_gadgets(binary)
-        print("Trying to generate your ROP chains...\n")
+        print("[*] Trying to generate your ROP chains...")
         gadgets = self.get_gadgets_of_operations(ops, binary, gadgets)
         self.__operations[binary] = gadgets
         combinations = self.regs_combinations(ops, gadgets)
@@ -62,6 +62,7 @@ class RopGenerator:
                     self.print_combinations(ops, combinations)
                     return True
             return False
+        print("[*] There you go!")
         self.print_combinations(ops, combinations)
         return True
 
@@ -240,11 +241,13 @@ class RopGenerator:
 
     def print_combinations(self, ops, combinations):
         keys = self.__operations.keys()
+        print("")
         for op in ops:
             print(op)
+            print("\t" + "-" * 10)
             for k in keys:
                 gadgets = self.__operations[k]
-                print("\t" + k.split('\\')[-1])
+                print("\t" + os.path.basename(k))
                 print("\t" + "-" * 10)
                 for gadget in gadgets:
                     if op == gadget["op"]:

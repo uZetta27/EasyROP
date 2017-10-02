@@ -23,13 +23,12 @@ class Args:
         parser = argparse.ArgumentParser()
 
         parser.add_argument("-v", "--version", action="store_true", help="Display EasyROP's version")
-        parser.add_argument("--binary", type=str, metavar="<path>", help="Specify a binary path to analyze")
+        parser.add_argument("--binary", type=str, metavar="<path>", nargs='+', help="Specify a list of binary paths to analyze")
         parser.add_argument("--depth", type=int, metavar="<bytes>", default=5, help="Depth for search engine (default 5 bytes)")
         parser.add_argument("--all", action="store_true", help="Disables the removal of duplicate gadgets")
         if self.__p:
             ops = self.__p.get_all_ops()
             self.ops_string = ", ".join(ops)
-
         parser.add_argument("--op", type=str, metavar="<op>", help="Search for operation: " + self.ops_string)
         parser.add_argument("--reg-src", type=str, metavar="<reg>", help="Specify a source reg to operation")
         parser.add_argument("--reg-dst", type=str, metavar="<reg>", help="Specify a destination reg to operation")

@@ -1,5 +1,4 @@
 import datetime
-import os
 
 from easyrop.knowndlls import *
 from easyrop.binaries.binary import *
@@ -38,8 +37,12 @@ class RopGenerator:
             print('\nTime elapsed: %s' % str(end))
 
     def search_ops_dlls(self, dlls, ops):
-        for dll in dlls:
-            if self.search_ops(ops, dll):
+        for i, dll in enumerate(dlls):
+            has_all, combinations = self.search_ops(ops, dll)
+            if has_all:
+                break
+            elif i == (len(dlls) - 1):
+                print("[-] I couldn't find all your ROP chains. Try defining a DLL list to search for (--binary <path> [<path> ...])")
                 break
             print("[-] We haven't all of them yet, let's keep searching...\n")
 
@@ -57,14 +60,14 @@ class RopGenerator:
                     gads += self.__operations[key]
                 combinations = self.regs_combinations(ops, gads)
                 if not self.has_all_combinations(combinations):
-                    return False
+                    return False, combinations
                 else:
                     self.print_combinations(ops, combinations)
-                    return True
-            return False
+                    return True, combinations
+            return False, combinations
         print("[*] There you go!")
         self.print_combinations(ops, combinations)
-        return True
+        return True, combinations
 
     def can_combine_dlls(self):
         return len(self.__operations) > 1
@@ -200,7 +203,7 @@ class RopGenerator:
     def read_file(self):
         try:
             return [line.rstrip('\n') for line in open(self.__rop_file)]
-        except:
+        except FileNotFoundError:
             print("[Error] Bad file %s" % self.__rop_file)
             sys.exit(-1)
 

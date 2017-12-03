@@ -91,13 +91,15 @@ class Core:
                 all_ref_ret = [m.start() for m in re.finditer(gad[INSTRUCTION_OP], section)]
                 for ref in all_ref_ret:
                     for depth in range(self.__options.depth):
-                        decodes = md.disasm(section[ref - depth:ref + gad[INSTRUCTION_SIZE]], vaddr + ref - depth)
-                        gadget = ""
-                        for decode in decodes:
-                            gadget += (decode.mnemonic + " " + decode.op_str + " ; ").replace("  ", " ")
-                        if len(gadget) > 0:
-                            gadget = gadget[:-3]
-                            ret += [{"file": os.path.basename(bin_), "vaddr": vaddr + ref - depth, "gadget": gadget, "bytes": section[ref - depth:ref + gad[INSTRUCTION_SIZE]]}]
+                        bytes_ = section[ref - depth:ref + gad[INSTRUCTION_SIZE]]
+                        if len(bytes_) <= self.__options.depth:
+                            decodes = md.disasm(bytes_, vaddr + ref - depth)
+                            gadget = ""
+                            for decode in decodes:
+                                gadget += (decode.mnemonic + " " + decode.op_str + " ; ").replace("  ", " ")
+                            if len(gadget) > 0:
+                                gadget = gadget[:-3]
+                                ret += [{"file": os.path.basename(bin_), "vaddr": vaddr + ref - depth, "gadget": gadget, "bytes": bytes_}]
         return ret
 
     def search_operation(self, gadgets, op, src, dst):

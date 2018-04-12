@@ -11,29 +11,23 @@ $> python EasyROP.py
 
 ### Use
 ```
-usage: EasyROP.py [-h] [-v] [--binary <path>] [--depth <bytes>] [--all]
-                  [--op <op>] [--reg-src <reg>] [--reg-dst <reg>] [--ropchain]
-                  [--nojop] [--noretf] [--test-os] [--test-binary <path>]
-                  [--ropattack <path>] [--dlls]
+usage: EasyROP.py [-h] [-v] [--binary <path> [<path> ...]] [--depth <bytes>]
+                  [--all] [--nojop] [--noretf] [--op <op>] [--reg-dst <reg>]
+                  [--reg-src <reg>] [--ropchain <file>]
 
 optional arguments:
   -h, --help            show this help message and exit
-  -v, --version         Display EasyROP's version
-  --binary <path>       Specify a binary path to analyze
-  --depth <bytes>       Depth for search engine (default 5 bytes)
-  --all                 Disables the removal of duplicate gadgets
-  --op <op>             Search for operation: lc, move, load, store, add, sub,
-                        and, or, xor, not, cond1, cond2
-  --reg-src <reg>       Specify a source reg to operation
-  --reg-dst <reg>       Specify a destination reg to operation
-  --ropchain            Enables ropchain generation to search for operation
-  --nojop               Disables JOP gadgets
-  --noretf              Disables gadgets terminated in a far return (retf)
-  --test-os             Analyze KnownDLLs of the computer to test viability of
-                        an attack (it takes long time)
-  --test-binary <path>  Analyze a binary to test viability of an attack
-  --ropattack <path>    Generate ROP attack from file
-  --dlls                Enable ROP attack search through KnownDLLs
+  -v, --version         display EasyROP's version
+  --binary <path> [<path> ...]
+                        specify a list of binary paths to analyze
+  --depth <bytes>       depth for search engine (default 5 bytes)
+  --all                 disables the removal of duplicate gadgets
+  --nojop               disables JOP gadgets
+  --noretf              disables gadgets terminated in a far return (retf)
+  --op <op>             search for operation
+  --reg-dst <reg>       specify a destination reg to operation
+  --reg-src <reg>       specify a source reg to operation
+  --ropchain <file>     plain text file with rop chains
 ```
 
 ### Operations
@@ -81,6 +75,7 @@ Following the next DTD you can specify your own operations through a XML file:
     </operation>
 </operations>
 ```
+
 This XML structure allows you to define register value of each instruction:
 
 * dst: destination register
@@ -93,7 +88,7 @@ This XML structure allows you to define register value of each instruction:
 * &lt;reg{1,2} value ="0xFFFFFFFF">: mandatory value of register
 
 ### Automatic ROP chains generation
-Through the --ropattack &lt;path> option you can specify in a plaintex file a ROP attack composed by operations defined in the XML. An example:
+Through the --ropchain &lt;path> option you can specify in a plaintex file a ROP attack composed by operations defined in the XML. An example:
 ```
 lc(reg1)
 lc(reg2)
@@ -103,64 +98,63 @@ move(reg3, reg2)
 ```
 
 Which results in the following output (summarized for the sake of readability):
- ```
-$> python EasyROP.py --binary C:\Windows\system32\kernel32.dll --ropattack rop.txt --nojop --noretf
-Searching gadgets on C:\Windows\system32\kernel32.dll
-Trying to generate your ROP chains...
+```
+$> python EasyROP.py --binary C:\Windows\system32\kernel32.dll --ropchain rop.txt --nojop --noretf
+[+] Analyzing kernel32.dll
 
 lc(reg1)
-	0x77e1f35d: pop ebp ; adc bh, dh ; ret 
-	0x77e000ad: pop ebp ; ret 
-	0x77e4a3ed: pop ecx ; pop ebp ; pop ecx ; pop ebx ; ret 4 
-	0x77e4a3ef: pop ecx ; pop ebx ; ret 4 
-	0x77e2922d: pop edi ; pop esi ; ret 
-	0x77e5238b: pop edi ; ret 
-	0x77e85f37: pop edx ; pop eax ; ret 
-	0x77e976d4: pop edx ; ret 0xb 
-	0x77e123a0: pop esi ; leave ; ret 
-	0x77e77f01: pop esi ; ret 4 
-	0x77e2683c: pop esp ; add byte ptr [eax], al ; leave ; ret 4 
-	0x77e735e0: pop esp ; ret 0xfffb 
+	[kernel32.dll @ 0x77e1f35d]: pop ebp ; adc bh, dh ; ret 
+	[kernel32.dll @ 0x77e000ad]: pop ebp ; ret 
+	[kernel32.dll @ 0x77e4a3ed]: pop ecx ; pop ebp ; pop ecx ; pop ebx ; ret 4 
+	[kernel32.dll @ 0x77e4a3ef]: pop ecx ; pop ebx ; ret 4 
+	[kernel32.dll @ 0x77e2922d]: pop edi ; pop esi ; ret 
+	[kernel32.dll @ 0x77e5238b]: pop edi ; ret 
+	[kernel32.dll @ 0x77e85f37]: pop edx ; pop eax ; ret 
+	[kernel32.dll @ 0x77e976d4]: pop edx ; ret 0xb 
+	[kernel32.dll @ 0x77e123a0]: pop esi ; leave ; ret 
+	[kernel32.dll @ 0x77e77f01]: pop esi ; ret 4 
+	[kernel32.dll @ 0x77e2683c]: pop esp ; add byte ptr [eax], al ; leave ; ret 4 
+	[kernel32.dll @ 0x77e735e0]: pop esp ; ret 0xfffb 
 lc(reg2)
-	0x77e6f379: pop eax ; leave ; ret 
-	0x77e78a2d: pop eax ; ret 
-	0x77e2e386: pop ebx ; ret 
-	0x77e4a3f0: pop ebx ; ret 4 
-	0x77e93018: pop ecx ; leave ; ret 4 
-	0x77e4a3ed: pop ecx ; pop ebp ; pop ecx ; pop ebx ; ret 4 
-	0x77e2ef97: pop edi ; leave ; ret 
-	0x77e5238b: pop edi ; ret 
-	0x77e2683c: pop esp ; add byte ptr [eax], al ; leave ; ret 4 
-	0x77e735e0: pop esp ; ret 0xfffb 
+	[kernel32.dll @ 0x77e6f379]: pop eax ; leave ; ret 
+	[kernel32.dll @ 0x77e78a2d]: pop eax ; ret 
+	[kernel32.dll @ 0x77e2e386]: pop ebx ; ret 
+	[kernel32.dll @ 0x77e4a3f0]: pop ebx ; ret 4 
+	[kernel32.dll @ 0x77e93018]: pop ecx ; leave ; ret 4 
+	[kernel32.dll @ 0x77e4a3ed]: pop ecx ; pop ebp ; pop ecx ; pop ebx ; ret 4 
+	[kernel32.dll @ 0x77e2ef97]: pop edi ; leave ; ret 
+	[kernel32.dll @ 0x77e5238b]: pop edi ; ret 
+	[kernel32.dll @ 0x77e2683c]: pop esp ; add byte ptr [eax], al ; leave ; ret 4 
+	[kernel32.dll @ 0x77e735e0]: pop esp ; ret 0xfffb 
 sub(reg2, reg1)
-	0x77e1d2b1: sub eax, ecx ; pop ebx ; pop ebp ; ret 8 
-	0x77e3ec10: sub eax, esi ; pop esi ; pop ebp ; ret 8 
-	0x77e1f2ce: sub ebx, edx ; add byte ptr [eax], al ; ret 4 
-	0x77e928ed: sub ecx, ebp ; ja 0x77e928d9 ; ret 
-	0x77e306a1: sub ecx, edx ; mov dword ptr [edi], ecx ; ret 
-	0x77e1fece: sub ecx, esi ; add byte ptr [eax], al ; ret 8 
-	0x77e699d2: sub edi, esp ; dec ecx ; ret 0x14 
-	0x77e69b50: sub esp, edi ; dec ecx ; ret 0x14 
+	[kernel32.dll @ 0x77e1d2b1]: sub eax, ecx ; pop ebx ; pop ebp ; ret 8 
+	[kernel32.dll @ 0x77e3ec10]: sub eax, esi ; pop esi ; pop ebp ; ret 8 
+	[kernel32.dll @ 0x77e1f2ce]: sub ebx, edx ; add byte ptr [eax], al ; ret 4 
+	[kernel32.dll @ 0x77e928ed]: sub ecx, ebp ; ja 0x77e928d9 ; ret 
+	[kernel32.dll @ 0x77e306a1]: sub ecx, edx ; mov dword ptr [edi], ecx ; ret 
+	[kernel32.dll @ 0x77e1fece]: sub ecx, esi ; add byte ptr [eax], al ; ret 8 
+	[kernel32.dll @ 0x77e699d2]: sub edi, esp ; dec ecx ; ret 0x14 
+	[kernel32.dll @ 0x77e69b50]: sub esp, edi ; dec ecx ; ret 0x14 
 clear(reg3)
-	0x77e0b823: xor eax, eax ; ret 
-	0x77e02ce5: xor eax, eax ; ret 4 
+	[kernel32.dll @ 0x77e0b823]: xor eax, eax ; ret 
+	[kernel32.dll @ 0x77e02ce5]: xor eax, eax ; ret 4 
 move(reg3, reg2)
-	0x77e79dcd: and eax, ecx ; pop ebp ; ret 0xc  (eax = 0xFFFFFFFF)
-	0x77e3e168: and eax, ecx ; pop ebp ; ret 4  (eax = 0xFFFFFFFF)
-	0x77e2243b: mov eax, eax ; ret 
-	0x77e913ae: mov eax, ebx ; pop ebx ; leave ; ret 0x10 
-	0x77e94bf8: mov eax, ecx ; leave ; ret 0x18 
-	0x77e2a43f: mov eax, ecx ; pop ebp ; ret 8 
-	0x77e3e138: mov eax, edi ; pop edi ; leave ; ret 0xc 
-	0x77e3da51: mov eax, edi ; pop edi ; leave ; ret 8 
-	0x77e8772e: push edi ; pop eax ; pop ebp ; ret 4 
-	0x77e90c9a: push edi ; pop eax ; pop esi ; leave ; ret 8 
-	0x77e63143: xchg eax, ebx ; cld ; dec ecx ; ret 4 
-	0x77e631c7: xchg eax, ebx ; sti ; dec ecx ; ret 4 
-	0x77e34c56: xchg eax, edi ; add al, byte ptr [eax] ; leave ; ret 
-	0x77e212c2: xchg eax, esp ; ret 
+	[kernel32.dll @ 0x77e79dcd]: and eax, ecx ; pop ebp ; ret 0xc  (eax = 0xFFFFFFFF)
+	[kernel32.dll @ 0x77e3e168]: and eax, ecx ; pop ebp ; ret 4  (eax = 0xFFFFFFFF)
+	[kernel32.dll @ 0x77e2243b]: mov eax, eax ; ret 
+	[kernel32.dll @ 0x77e913ae]: mov eax, ebx ; pop ebx ; leave ; ret 0x10 
+	[kernel32.dll @ 0x77e94bf8]: mov eax, ecx ; leave ; ret 0x18 
+	[kernel32.dll @ 0x77e2a43f]: mov eax, ecx ; pop ebp ; ret 8 
+	[kernel32.dll @ 0x77e3e138]: mov eax, edi ; pop edi ; leave ; ret 0xc 
+	[kernel32.dll @ 0x77e3da51]: mov eax, edi ; pop edi ; leave ; ret 8 
+	[kernel32.dll @ 0x77e8772e]: push edi ; pop eax ; pop ebp ; ret 4 
+	[kernel32.dll @ 0x77e90c9a]: push edi ; pop eax ; pop esi ; leave ; ret 8 
+	[kernel32.dll @ 0x77e63143]: xchg eax, ebx ; cld ; dec ecx ; ret 4 
+	[kernel32.dll @ 0x77e631c7]: xchg eax, ebx ; sti ; dec ecx ; ret 4 
+	[kernel32.dll @ 0x77e34c56]: xchg eax, edi ; add al, byte ptr [eax] ; leave ; ret 
+	[kernel32.dll @ 0x77e212c2]: xchg eax, esp ; ret 
 
-Time elapsed: 0:00:11.261473
+Time elapsed: 0:00:05.522
  ```
 
 ### License

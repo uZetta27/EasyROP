@@ -1,39 +1,30 @@
-"""
-Interface to implement to parse different binary formats (PE, Mach-O, ELF, etc.)
-"""
-import sys
+import os
+import __main__
+
 from easyrop.binaries.pe import Pe
 from easyrop.binaries.binary_exception import BinaryException
 
+from pefile import PEFormatError
 
 class Binary:
-    def __init__(self, binary):
-        self.__file_name = binary
-        self.__binary = None
-
+    def __init__(self, file_name):
         try:
-            self.__binary = Pe(self.__file_name)
-        except IOError:
-            print("[Error] Can't open binary or binary not found")
-            sys.exit(-1)
-        except BinaryException:
-            print("[Error] Can't parse binary file, probably corrupted or not a binary file")
-            sys.exit(-1)
+            self._binary = Pe(file_name)
+        except PEFormatError:
+            print("%s: '%s': Not a PE file" % (os.path.basename(__main__.__file__), os.path.realpath(file_name)))
+            raise BinaryException
 
     def get_file_name(self):
-        return self.__file_name
-
-    def get_binary(self):
-        return self.__binary
+        return self._binary.get_file_name()
 
     def get_entry_point(self):
-        return self.__binary.get_entry_point()
+        return self._binary.get_entry_point()
 
     def get_exec_sections(self):
-        return self.__binary.get_exec_sections()
+        return self._binary.get_exec_sections()
 
     def get_arch(self):
-        return self.__binary.get_arch()
+        return self._binary.get_arch()
 
     def get_arch_mode(self):
-        return self.__binary.get_arch_mode()
+        return self._binary.get_arch_mode()
